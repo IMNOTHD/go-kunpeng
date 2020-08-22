@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  canal-deployer:
+    image: c-deployer:0.0.1
+    container_name: c-deployer
+    build:
+      context: canal.deployer-1.1.4
+      dockerfile: Dockerfile
+    ports:
+      - 9100:9100
+      - 11110:11110
+      - 11111:11111
+      - 11112:11112
+    restart: always
+    network_mode: host
+  go-kunpeng:
+    image: go-kunpeng:0.0.1
+    container_name: go-kunpeng
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    network_mode: host
