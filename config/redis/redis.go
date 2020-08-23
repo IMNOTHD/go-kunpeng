@@ -1,7 +1,7 @@
 package redis
 
 const (
-	Address = "127.0.0.1"
-	Port    = 6379
-	Db      = 1
+	Addr     = "127.0.0.1:6379"
+	Password = ""
+	DB       = 0
 )
