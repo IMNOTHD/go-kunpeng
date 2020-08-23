@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	service.Client()
+	service.CanalClient()
 }

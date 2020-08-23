@@ -24,7 +24,12 @@ canal(https://github.com/alibaba/canal)
 运行docker-compose.yml即可  
 *请务必先阅读 **init.sql***
 
-### 2.2 注意事项
+### 2.2 说明事项
+现在canal client使用的是轮询方式，具体的间隔在config相应的项中修改  
+如将来对延迟有需求，可考虑修改为基于kafka/RocketMQ的实现
+
+### 2.3 注意事项
 现在使用的网络模式是host，如果实在无法读取到 `mysql`/`Redis` 服务, 请使用bridge连接或者直接在相应的配重中修改为内网ip进行访问  
 canal有两个release文件: deployer是后端连接mysql用；admin是web UI配置用，直接启动`startup.sh`即可使用  
-***现在还是实验阶段, Redis服务尚未编写***
+***现在还是实验阶段, Redis服务尚未编写***  
+***docker host网络模式仅在Linux下有效，请勿在Windows/MacOS下测试***

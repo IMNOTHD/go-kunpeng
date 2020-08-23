@@ -10,13 +10,12 @@ import (
 
 	"github.com/withlin/canal-go/client"
 	protocol "github.com/withlin/canal-go/protocol"
+
+	c "go-kunpeng/config/canal"
 )
 
-func Client() {
-
-	// 192.168.199.17 替换成你的canal server的地址
-	// example 替换成-e canal.destinations=example 你自己定义的名字
-	connector := client.NewSimpleCanalConnector("127.0.0.1", 11111, "", "", "example", 60000, 60*60*1000)
+func CanalClient() {
+	connector := client.NewSimpleCanalConnector(c.Address, c.Port, c.Username, c.Password, c.Destination, c.SoTimeOut, c.IdleTimeOut)
 	err := connector.Connect()
 	if err != nil {
 		log.Println(err)
@@ -51,7 +50,7 @@ func Client() {
 		}
 		batchId := message.Id
 		if batchId == -1 || len(message.Entries) <= 0 {
-			time.Sleep(300 * time.Millisecond)
+			time.Sleep(c.PollingInterval * time.Millisecond)
 			fmt.Println("===暂时没有数据更新===")
 			continue
 		}
