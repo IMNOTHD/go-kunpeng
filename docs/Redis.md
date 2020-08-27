@@ -7,12 +7,12 @@ db: check config/redis
 ```
 ---
 
-## 用户
+## user
 #### userInfo
 ##### key
-|||
-|:---|:---|
+
 |type|`hashMap`|
+|:---|:---|
 |key|`betahouse:heatae:user:userInfo`|  
 |hash key|`userId`|
 
@@ -28,15 +28,36 @@ example:
 #### roleInfo
 ##### key
 
-|||
-|:---|:---|
 |type|`hashMap`|
+|:---|:---|
 |key|`betahouse:heatae:user:roleInfo`|  
 |hash key|`userId`|
 
 ##### value
-一个json string
+一个json string  
 example:
 ```json
-
+["ACTIVITY_STAMPER"]
 ```
+
+---
+
+#### jobInfo
+##### key
+
+|type|`hashMap`|
+|:---|:---|
+|key|`betahouse:heatae:user:jobInfo`|  
+|hash key|`userId`|
+
+##### value
+一个json string  
+example:
+```json
+["时雨技术交流与支持协会社长"]
+```
+
+---
+
+## activity
+todo...
