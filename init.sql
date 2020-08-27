@@ -12,5 +12,12 @@ server_id=1 #配置mysql replaction需要定义，不能和canal的slaveId重复
 
 CREATE USER 'canal'@'%' IDENTIFIED BY 'canal';
 
+/*
+在Mysql 8.0中, 使用上面的加密方式连接会报错error 2059: Authentication plugin 'caching_sha2_password' cannot be loaded
+使用8.0版本的时候, 请额外运行以下两条sql语句
+ALTER USER 'canal'@'%' IDENTIFIED BY 'canal' PASSWORD EXPIRE NEVER; #修改加密规则
+ALTER USER 'canal'@'%' IDENTIFIED WITH mysql_native_password BY 'canal'; #更新一下用户的密码
+*/
+
 GRANT ALL PRIVILEGES ON *.* TO 'canal'@'%' IDENTIFIED BY 'canal' WITH GRANT OPTION;
 FLUSH PRIVILEGES;

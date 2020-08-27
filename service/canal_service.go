@@ -11,11 +11,11 @@ import (
 	"github.com/withlin/canal-go/client"
 	protocol "github.com/withlin/canal-go/protocol"
 
-	c "go-kunpeng/config/canal"
+	cc "go-kunpeng/config/canal"
 )
 
 func CanalClient() {
-	connector := client.NewSimpleCanalConnector(c.Address, c.Port, c.Username, c.Password, c.Destination, c.SoTimeOut, c.IdleTimeOut)
+	connector := client.NewSimpleCanalConnector(cc.Address, cc.Port, cc.Username, cc.Password, cc.Destination, cc.SoTimeOut, cc.IdleTimeOut)
 	err := connector.Connect()
 	if err != nil {
 		log.Println(err)
@@ -50,7 +50,7 @@ func CanalClient() {
 		}
 		batchId := message.Id
 		if batchId == -1 || len(message.Entries) <= 0 {
-			time.Sleep(c.PollingInterval * time.Millisecond)
+			time.Sleep(cc.PollingInterval * time.Millisecond)
 			fmt.Println("===暂时没有数据更新===")
 			continue
 		}
