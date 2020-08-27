@@ -12,8 +12,8 @@ import (
 
 const (
 	_userInfoRedisKey = "betahouse:heatae:user:userInfo"
-	_roleInfoRedisKey = "betahouse:heatae:user:roleInfo"
-	_jobInfoRedisKey  = "betahouse:heatae:user:jobInfo"
+	_roleInfoRedisKey = "betahouse:heatae:user:roleInfo:"
+	_jobInfoRedisKey  = "betahouse:heatae:user:jobInfo:"
 )
 
 func CreateRedisClient() (*redis.Client, error) {
@@ -42,27 +42,29 @@ func SetUserInfoRedis(c *redis.Client, userId string, userInfo *model.UserInfo) 
 	return nil
 }
 
-func SetRoleInfoRedis(c *redis.Client, userId string, roleInfo *model.RoleInfo) error {
+func AddRoleInfoRedis(c *redis.Client, userId string, roleInfo *model.RoleInfo) error {
 	var ctx = context.Background()
 
-	info, _ := json.Marshal(roleInfo)
-	val := c.HSet(ctx, _roleInfoRedisKey, userId, info)
+	for _, role := range *roleInfo {
+		val := c.SAdd(ctx, _roleInfoRedisKey+userId, role)
 
-	if val.Err() != nil {
-		return val.Err()
+		if val.Err() != nil {
+			return val.Err()
+		}
 	}
 
 	return nil
 }
 
-func SetJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) error {
+func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) error {
 	var ctx = context.Background()
 
-	info, _ := json.Marshal(jobInfo)
-	val := c.HSet(ctx, _jobInfoRedisKey, userId, info)
+	for _, job := range *jobInfo {
+		val := c.SAdd(ctx, _jobInfoRedisKey+userId, job)
 
-	if val.Err() != nil {
-		return val.Err()
+		if val.Err() != nil {
+			return val.Err()
+		}
 	}
 
 	return nil

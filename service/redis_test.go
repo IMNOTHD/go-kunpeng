@@ -38,7 +38,14 @@ func TestCreateRedisClient(t *testing.T) {
 		log.Fatal("Redis HMSet Error:", err)
 	}
 
-	v, err := c.HGet(ctx, "betahouse:heatae:user:userInfo", userId).Result()
+	roleInfo := model.RoleInfo{"p1", "p4"}
+	err = AddRoleInfoRedis(c, userId, &roleInfo)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	v, err := c.SMembers(ctx, _roleInfoRedisKey+userId).Result()
 
 	fmt.Println(v)
 }
