@@ -61,9 +61,9 @@ example of one:
 ### activity record
 ##### key
 
-|type|`set`|
+|type|`zset`|
 |:---|:---|
-|key|`betahouse:heatae:activity:activityRecord:{activityType}:userId`|  
+|key|`betahouse:heatae:activity:activityRecord:{userId}:{activityType}`|  
 
 ##### value
 多个描述活动章的json string  
