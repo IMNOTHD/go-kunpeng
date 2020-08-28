@@ -13,6 +13,8 @@ import (
 
 type CacheUserService struct{}
 
+type CacheActivityService struct{}
+
 const (
 	// Address grpc监听地址
 	Address string = ":7111"
@@ -28,6 +30,7 @@ func Start() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterCacheUserServer(grpcServer, &CacheUserService{})
+	pb.RegisterCacheActivityRecordServer(grpcServer, &CacheActivityService{})
 	log.Println(Address + " net.Listening...")
 
 	httpServer := ProvideHttp(Address, grpcServer)
@@ -38,6 +41,8 @@ func Start() {
 	}
 }
 
+// -------------------------------------
+
 func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.CacheSingleUserRequest) (*pb.CacheSingleUserResponse, error) {
 	panic("implement me")
 }
@@ -46,18 +51,44 @@ func (c CacheUserService) CacheMultiSingleUser(server pb.CacheUser_CacheMultiSin
 	panic("implement me")
 }
 
-func (c CacheUserService) CacheUserByGrade(ctx context.Context, request *pb.CacheUserByGradeRequest) (*pb.CacheUserByGradeResponse, error) {
+func (c CacheUserService) CacheUserByGrade(ctx context.Context, request *pb.CacheUserByGradeRequest) (*pb.MultiCacheUserResponse, error) {
 	panic("implement me")
 }
 
-func (c CacheUserService) CacheUserByClass(ctx context.Context, request *pb.CacheUserByClassRequest) (*pb.CacheUserByClassResponse, error) {
+func (c CacheUserService) CacheUserByClass(ctx context.Context, request *pb.CacheUserByClassRequest) (*pb.MultiCacheUserResponse, error) {
 	panic("implement me")
 }
 
-func (c CacheUserService) CacheAllUser(ctx context.Context, empty *empty.Empty) (*pb.CacheAllUserResponse, error) {
+func (c CacheUserService) CacheAllUser(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserResponse, error) {
 	panic("implement me")
 }
 
-func (c CacheUserService) RemoveAllUserCache(ctx context.Context, empty *empty.Empty) (*pb.RemoveAllUserCacheResponse, error) {
+func (c CacheUserService) RemoveAllUserCache(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserResponse, error) {
+	panic("implement me")
+}
+
+// -------------------------------------
+
+func (c CacheActivityService) CacheSingleUserActivityRecord(ctx context.Context, request *pb.CacheSingleUserActivityRecordRequest) (*pb.CacheSingleUserActivityRecordResponse, error) {
+	panic("implement me")
+}
+
+func (c CacheActivityService) CacheMultiSingleUserActivityRecord(server pb.CacheActivityRecord_CacheMultiSingleUserActivityRecordServer) error {
+	panic("implement me")
+}
+
+func (c CacheActivityService) CacheUserActivityRecordByGrade(ctx context.Context, request *pb.CacheUserActivityRecordByGradeRequest) (*pb.MultiCacheUserActivityRecordResponse, error) {
+	panic("implement me")
+}
+
+func (c CacheActivityService) CacheUserActivityRecordByClass(ctx context.Context, request *pb.CacheUserActivityRecordByClassRequest) (*pb.MultiCacheUserActivityRecordResponse, error) {
+	panic("implement me")
+}
+
+func (c CacheActivityService) CacheAllUserActivityRecord(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserActivityRecordResponse, error) {
+	panic("implement me")
+}
+
+func (c CacheActivityService) RemoveAllUserActivityRecordCache(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserActivityRecordResponse, error) {
 	panic("implement me")
 }

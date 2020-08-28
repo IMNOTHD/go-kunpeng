@@ -1,0 +1,81 @@
+// protoc --go_out=plugins=grpc:. cache_activity.proto
+// protoc --grpc-gateway_out=logtostderr=true:. cache_activity.proto
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+//option java_package = "";
+option go_package = ".;api";
+
+service CacheActivityRecord {
+    // 缓存同一用户的全部activity record, 禁止多次调用此rpc, 需要cache多个用户时, 必须使用CacheMultiSingleUserActivityRecord
+    rpc CacheSingleUserActivityRecord (CacheSingleUserActivityRecordRequest) returns (CacheSingleUserActivityRecordResponse) {
+        option (google.api.http) = {
+            put: "/cache/activity-record/single"
+            body: "*"
+        };
+    }
+    // 缓存多个单用户的activity record
+    rpc CacheMultiSingleUserActivityRecord (stream CacheSingleUserActivityRecordRequest) returns (stream CacheSingleUserActivityRecordResponse);
+    // 以年级为关键字缓存activity record
+    rpc CacheUserActivityRecordByGrade (CacheUserActivityRecordByGradeRequest) returns (MultiCacheUserActivityRecordResponse) {
+        option (google.api.http) = {
+            put: "/cache/activity-record/grade"
+            body: "*"
+        };
+    }
+    // 以班级为关键字缓存activity record
+    rpc CacheUserActivityRecordByClass (CacheUserActivityRecordByClassRequest) returns (MultiCacheUserActivityRecordResponse) {
+        option (google.api.http) = {
+            put: "/cache/activity-record/class"
+            body: "*"
+        };
+    }
+    // 缓存全部用户的activity record, 调用此rpc请注意Redis内存占用
+    rpc CacheAllUserActivityRecord (google.protobuf.Empty) returns (MultiCacheUserActivityRecordResponse) {
+        option (google.api.http) = {
+            put: "/cache/activity-record/all"
+            body: "*"
+        };
+    }
+    // 删除全部用户的activity record
+    rpc RemoveAllUserActivityRecordCache (google.protobuf.Empty) returns (MultiCacheUserActivityRecordResponse) {
+        option (google.api.http) = {
+            delete: "/cache/activity-record/all"
+        };
+    }
+}
+
+enum CacheActivityRecordResponseCode {
+    // 成功
+    SUCCESS = 0;
+    // 部分成功
+    PARTIAL_SUCCESS = 1;
+    // 失败
+    FAIL = 2;
+}
+
+message CacheSingleUserActivityRecordRequest {
+    string userId = 1;
+}
+
+message CacheSingleUserActivityRecordResponse {
+    CacheActivityRecordResponseCode code = 1;
+}
+
+message CacheUserActivityRecordByGradeRequest {
+    string grade = 1;
+}
+
+message CacheUserActivityRecordByClassRequest {
+    string class = 1;
+}
+
+message MultiCacheUserActivityRecordResponse {
+    CacheActivityRecordResponseCode code = 1;
+    // 请注意, 如code并非PARTITAL_SUCCESS, 不会返回successCount
+    int32 successCount = 2;
+}

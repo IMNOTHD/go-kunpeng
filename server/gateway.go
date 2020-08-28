@@ -18,10 +18,17 @@ func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server {
 	ctx := context.Background()
 	gwmux := runtime.NewServeMux()
 	dopts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pb.RegisterCacheUserHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
+
+	var err error
+	err = pb.RegisterCacheUserHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
 	if err != nil {
 		log.Fatalf("Register Endpoint err: %v", err)
 	}
+	err = pb.RegisterCacheActivityRecordHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
+	if err != nil {
+		log.Fatalf("Register Endpoint err: %v", err)
+	}
+
 	//新建mux，它是http的请求复用器
 	mux := http.NewServeMux()
 	//注册gwmux

@@ -436,15 +436,15 @@ func RegisterCacheUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 }
 
 var (
-	pattern_CacheUser_CacheSingleUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cache", "single"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_CacheUser_CacheSingleUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"cache", "user", "single"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CacheUser_CacheUserByGrade_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cache", "grade"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_CacheUser_CacheUserByGrade_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"cache", "user", "grade"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CacheUser_CacheUserByClass_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cache", "class"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_CacheUser_CacheUserByClass_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"cache", "user", "class"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CacheUser_CacheAllUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cache", "all"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_CacheUser_CacheAllUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"cache", "user", "all"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CacheUser_RemoveAllUserCache_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cache", "all"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_CacheUser_RemoveAllUserCache_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"cache", "user", "all"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
