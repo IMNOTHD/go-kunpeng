@@ -1,10 +1,10 @@
 package service
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"testing"
+	"time"
 )
 
 const (
@@ -19,24 +19,34 @@ func TestCreateMysqlWorker(t *testing.T) {
 		return
 	}
 
-	stmt, err := db.Prepare(_queryTest)
+	u, err := QueryUserInfoByGrade(db, "2015")
+
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	rows, err := stmt.Query()
-
-	var majorId, realName *sql.NullString
-
-	for rows.Next() {
-		err = rows.Scan(&majorId, &realName)
-
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-
-		fmt.Println(realName, majorId)
+	c, err := CreateRedisClient()
+	if err != nil {
+		log.Fatal(err.Error())
+		return
 	}
+
+	s := 0
+	ti := time.Now()
+	for _, i := range u {
+		tt := time.Now()
+		err = SetUserInfoRedis(c, &i)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		s++
+		fmt.Println("Time add one user: ", time.Since(tt))
+	}
+	elapsed := time.Since(ti)
+	fmt.Println("App elapsed: ", elapsed)
+	fmt.Println("Success add: ", s)
+
+	_ = db.Close()
+	_ = c.Close()
 }
