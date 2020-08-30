@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"testing"
@@ -17,35 +18,34 @@ func TestCreateRedisClient(t *testing.T) {
 	}
 	var ctx = context.Background()
 
-	a := &model.ActivityRecord{
-		ActivityRecordID: "201905292002334060129610022018",
-		ActivityID:       "201905241117049855811810012019",
-		UserID:           "201811302142192259540001201847",
-		ScannerUserID:    "201811302142173663860001201808",
-		Time:             0,
-		Type:             "schoolActivity",
-		Status:           "ENABLE",
-		Term:             "2018B",
-		Grades:           "",
-		ExtInfo: map[string]interface{}{
-			"scannerName": "庄子琛",
-		},
-		CreateTime:          1559131353000,
-		ActivityName:        "第四届礼仪风采大赛",
-		OrganizationMessage: "学生会",
-		StartTime:           1558667700000,
-		EndTime:             1558667940000,
-		ActivityTime:        "0.0",
-		ScannerName:         "庄子琛",
+	userId := "189050214"
+	userInfo := model.UserInfo{
+		UserInfoID: "201811302142199201233000073047",
+		UserID:     "201811302142192259540001201847",
+		StuID:      "189050214",
+		RealName:   "何锝升",
+		Sex:        "男",
+		Major:      "计算机科学与技术",
+		ClassID:    "180923101",
+		Grade:      "2018",
+		EnrollDate: 1535731200000,
 	}
+	json.Unmarshal([]byte("{}"), &userInfo.ExtInfo)
 
-	err = AddActivityRecordRedis(c, a)
+	err = SetUserInfoRedis(c, userId, &userInfo)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Redis HMSet Error:", err)
 	}
 
-	v, err := c.ZRange(ctx, fmt.Sprintf("%s:%s:%s", _activityRecordRedisKey, a.UserID, a.Type), 0, -1).Result()
+	roleInfo := model.RoleInfo{"p1", "p4"}
+	err = AddRoleInfoRedis(c, userId, &roleInfo)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	v, err := c.SMembers(ctx, _roleInfoRedisKey+userId).Result()
 
 	fmt.Println(v)
 }

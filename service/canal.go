@@ -14,7 +14,7 @@ import (
 	cc "go-kunpeng/config/canal"
 )
 
-func StartCanalClient() {
+func CanalClient() {
 	connector := client.NewSimpleCanalConnector(cc.Address, cc.Port, cc.Username, cc.Password, cc.Destination, cc.SoTimeOut, cc.IdleTimeOut)
 	err := connector.Connect()
 	if err != nil {

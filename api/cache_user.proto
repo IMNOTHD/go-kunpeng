@@ -19,7 +19,7 @@ service CacheUser {
         };
     }
     // 缓存多个单用户
-    rpc CacheMultiSingleUser (stream CacheSingleUserRequest) returns (stream CacheMultiSingleUserResponse);
+    rpc CacheMultiSingleUser (stream CacheSingleUserRequest) returns (stream CacheSingleUserRequest);
     // 以年级为关键字缓存用户
     rpc CacheUserByGrade (CacheUserByGradeRequest) returns (MultiCacheUserResponse) {
         option (google.api.http) = {
@@ -64,14 +64,6 @@ message CacheSingleUserRequest {
 
 message CacheSingleUserResponse {
     CacheUserResponseCode code = 1;
-    string msg = 2;
-}
-
-message CacheMultiSingleUserResponse {
-    CacheUserResponseCode code = 1;
-    // msg仅当错误时会出现
-    string msg = 2;
-    string userId = 3;
 }
 
 message MultiCacheUserResponse {

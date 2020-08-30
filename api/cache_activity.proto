@@ -19,7 +19,7 @@ service CacheActivityRecord {
         };
     }
     // 缓存多个单用户的activity record
-    rpc CacheMultiSingleUserActivityRecord (stream CacheSingleUserActivityRecordRequest) returns (stream CacheMultiSingleUserActivityRecordResponse);
+    rpc CacheMultiSingleUserActivityRecord (stream CacheSingleUserActivityRecordRequest) returns (stream CacheSingleUserActivityRecordResponse);
     // 以年级为关键字缓存activity record
     rpc CacheUserActivityRecordByGrade (CacheUserActivityRecordByGradeRequest) returns (MultiCacheUserActivityRecordResponse) {
         option (google.api.http) = {
@@ -64,14 +64,6 @@ message CacheSingleUserActivityRecordRequest {
 
 message CacheSingleUserActivityRecordResponse {
     CacheActivityRecordResponseCode code = 1;
-    string msg = 2;
-}
-
-message CacheMultiSingleUserActivityRecordResponse {
-    CacheActivityRecordResponseCode code = 1;
-    string msg = 2;
-    // msg仅当错误时会出现
-    string userId = 3;
 }
 
 message CacheUserActivityRecordByGradeRequest {
