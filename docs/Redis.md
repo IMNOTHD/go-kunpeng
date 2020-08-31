@@ -71,5 +71,3 @@ example of one:
 ```json
 {"activityRecordId":"201903202000435094633110022019","activityId":"201903201351484863392210012019","userId":"201811302142192259540001201847","scannerUserId":"201811302141557664490001201843","time":0,"type":"lectureActivity","status":"ENABLE","term":"2018B","grades":"","extInfo":{"scannerName":"黄奕雯"},"createTime":1553083243000,"activityName":"《驴得水》话剧公演","organizationMessage":"大学生艺术团","location":null,"startTime":1553078700000,"endTime":1553085900000,"score":null,"activityTime":"0.0","scannerName":"黄奕雯"}
 ```
-
----

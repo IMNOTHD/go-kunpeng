@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 
@@ -9,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	pb "go-kunpeng/api"
+	"go-kunpeng/service"
 )
 
 type CacheUserService struct{}
@@ -41,14 +43,100 @@ func Start() {
 	}
 }
 
+// 由于一些奇怪的设计, 这里所有的Handler的error均返回nil, 请读取Code
 // -------------------------------------
 
 func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.CacheSingleUserRequest) (*pb.CacheSingleUserResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+
+	u, err := service.QueryUserInfoByUserId(db, request.UserId)
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+	err = service.SetUserInfoRedis(rc, u)
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+	// todo 只做了userinfo
+
+	return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
 
-func (c CacheUserService) CacheMultiSingleUser(server pb.CacheUser_CacheMultiSingleUserServer) error {
-	panic("implement me")
+func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUserServer) error {
+	// todo 该服务需完全的重构, 做成多线程模式, 这里仅是做个示例
+	var err error
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	for {
+		r, err := s.Recv()
+
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			log.Println(err.Error())
+			_ = s.Send(&pb.CacheMultiSingleUserResponse{
+				Code:   pb.CacheUserResponseCode_FAIL,
+				Msg:    err.Error(),
+				UserId: r.UserId,
+			})
+		}
+		if err != nil {
+			log.Println(err.Error())
+			_ = s.Send(&pb.CacheMultiSingleUserResponse{
+				Code:   pb.CacheUserResponseCode_FAIL,
+				Msg:    err.Error(),
+				UserId: r.UserId,
+			})
+		}
+
+		u, err := service.QueryUserInfoByUserId(db, r.UserId)
+		if err != nil {
+			log.Println(err.Error())
+			_ = s.Send(&pb.CacheMultiSingleUserResponse{
+				Code:   pb.CacheUserResponseCode_FAIL,
+				Msg:    err.Error(),
+				UserId: r.UserId,
+			})
+		}
+		err = service.SetUserInfoRedis(rc, u)
+		if err != nil {
+			log.Println(err.Error())
+			_ = s.Send(&pb.CacheMultiSingleUserResponse{
+				Code:   pb.CacheUserResponseCode_FAIL,
+				Msg:    err.Error(),
+				UserId: r.UserId,
+			})
+		}
+
+		_ = s.Send(&pb.CacheMultiSingleUserResponse{
+			Code: pb.CacheUserResponseCode_SUCCESS,
+		})
+
+	}
+
+	return nil
 }
 
 func (c CacheUserService) CacheUserByGrade(ctx context.Context, request *pb.CacheUserByGradeRequest) (*pb.MultiCacheUserResponse, error) {

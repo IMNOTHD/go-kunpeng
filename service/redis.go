@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/go-redis/redis/v8"
 
@@ -11,9 +12,10 @@ import (
 )
 
 const (
-	_userInfoRedisKey = "betahouse:heatae:user:userInfo"
-	_roleInfoRedisKey = "betahouse:heatae:user:roleInfo:"
-	_jobInfoRedisKey  = "betahouse:heatae:user:jobInfo:"
+	_userInfoRedisKey       = "betahouse:heatae:user:userInfo"
+	_roleInfoRedisKey       = "betahouse:heatae:user:roleInfo:"
+	_jobInfoRedisKey        = "betahouse:heatae:user:jobInfo:"
+	_activityRecordRedisKey = "betahouse:heatae:activity:activityRecord"
 )
 
 func CreateRedisClient() (*redis.Client, error) {
@@ -29,11 +31,11 @@ func CreateRedisClient() (*redis.Client, error) {
 	return c, err
 }
 
-func SetUserInfoRedis(c *redis.Client, userId string, userInfo *model.UserInfo) error {
+func SetUserInfoRedis(c *redis.Client, userInfo *model.UserInfo) error {
 	var ctx = context.Background()
 
 	info, _ := json.Marshal(userInfo)
-	val := c.HSet(ctx, _userInfoRedisKey, userId, info)
+	val := c.HSet(ctx, _userInfoRedisKey, userInfo.UserID, info)
 
 	if val.Err() != nil {
 		return val.Err()
@@ -65,6 +67,28 @@ func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) err
 		if val.Err() != nil {
 			return val.Err()
 		}
+	}
+
+	return nil
+}
+
+func AddActivityRecordRedis(c *redis.Client, activityRecord *model.ActivityRecord) error {
+	var ctx = context.Background()
+
+	record, _ := json.Marshal(activityRecord)
+	key := fmt.Sprintf("%s:%s:%s", _activityRecordRedisKey, activityRecord.UserID, activityRecord.Type)
+
+	count, err := c.ZCard(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(count)
+
+	val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
+
+	if val.Err() != nil {
+		return val.Err()
 	}
 
 	return nil
