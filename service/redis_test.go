@@ -15,6 +15,12 @@ func TestCreateRedisClient(t *testing.T) {
 		log.Fatal(err.Error())
 		return
 	}
+
+	err = SetAvatarUrlRedis(c, "201811302142192259540001201847", &model.AvatarUrl{Url: "123"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var ctx = context.Background()
 
 	a := &model.ActivityRecord{

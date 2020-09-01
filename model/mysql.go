@@ -18,6 +18,17 @@ type UserInfoDO struct {
 	ExtInfo    sql.NullString
 }
 
+type JobInfoDO struct {
+	OrganizationName  string
+	MemberDescription sql.NullString
+}
+
+type AvatarUrlDO struct {
+	Url sql.NullString
+}
+
+// -----------------------------------
+
 func (u *UserInfoDO) GetStuID() string {
 	if u.StuID.Valid {
 		return u.StuID.String
@@ -70,6 +81,24 @@ func (u *UserInfoDO) GetEnrollDate() int64 {
 func (u *UserInfoDO) GetExtInfo() string {
 	if u.ExtInfo.Valid {
 		return u.ExtInfo.String
+	}
+	return ""
+}
+
+// -----------------------------------
+
+func (j *JobInfoDO) GetMemberDescription() string {
+	if j.MemberDescription.Valid {
+		return j.MemberDescription.String
+	}
+	return ""
+}
+
+// -----------------------------------
+
+func (a AvatarUrlDO) GetAvatarUrl() string {
+	if a.Url.Valid {
+		return a.Url.String
 	}
 	return ""
 }

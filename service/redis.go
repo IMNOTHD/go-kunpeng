@@ -15,7 +15,8 @@ const (
 	_userInfoRedisKey       = "betahouse:heatae:user:userInfo"
 	_roleInfoRedisKey       = "betahouse:heatae:user:roleInfo:"
 	_jobInfoRedisKey        = "betahouse:heatae:user:jobInfo:"
-	_activityRecordRedisKey = "betahouse:heatae:activity:activityRecord"
+	_avatarUrlRedisKey      = "betahouse:heatae:user:avatarUrl:"
+	_activityRecordRedisKey = "betahouse:heatae:activity:activityRecord:"
 )
 
 func CreateRedisClient() (*redis.Client, error) {
@@ -29,6 +30,28 @@ func CreateRedisClient() (*redis.Client, error) {
 	_, err := c.Ping(ctx).Result()
 
 	return c, err
+}
+
+func CleanUserAllInfo(c *redis.Client, userId string) error {
+	var ctx = context.Background()
+
+	pipe := c.TxPipeline()
+
+	defer pipe.Close()
+
+	pipe.HDel(ctx, _userInfoRedisKey, userId)
+	pipe.Del(ctx, _roleInfoRedisKey+userId)
+	pipe.Del(ctx, _jobInfoRedisKey+userId)
+	pipe.Del(ctx, _avatarUrlRedisKey+userId)
+
+	_, err := pipe.Exec(ctx)
+
+	if err != nil {
+		_ = pipe.Discard()
+		return err
+	}
+
+	return nil
 }
 
 func SetUserInfoRedis(c *redis.Client, userInfo *model.UserInfo) error {
@@ -72,11 +95,23 @@ func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) err
 	return nil
 }
 
+func SetAvatarUrlRedis(c *redis.Client, userId string, avatarUrl *model.AvatarUrl) error {
+	var ctx = context.Background()
+
+	val := c.Set(ctx, _avatarUrlRedisKey+userId, avatarUrl.Url, 0)
+
+	if val.Err() != nil {
+		return val.Err()
+	}
+
+	return nil
+}
+
 func AddActivityRecordRedis(c *redis.Client, activityRecord *model.ActivityRecord) error {
 	var ctx = context.Background()
 
 	record, _ := json.Marshal(activityRecord)
-	key := fmt.Sprintf("%s:%s:%s", _activityRecordRedisKey, activityRecord.UserID, activityRecord.Type)
+	key := fmt.Sprintf("%s%s:%s", _activityRecordRedisKey, activityRecord.UserID, activityRecord.Type)
 
 	count, err := c.ZCard(ctx, key).Result()
 	if err != nil {

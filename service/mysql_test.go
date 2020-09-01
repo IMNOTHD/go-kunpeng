@@ -19,7 +19,7 @@ func TestCreateMysqlWorker(t *testing.T) {
 		return
 	}
 
-	u, err := QueryUserInfoByGrade(db, "2015")
+	u, err := QueryUserByGrade(db, "2015")
 
 	if err != nil {
 		log.Fatal(err)

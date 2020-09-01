@@ -17,3 +17,14 @@ type UserInfo struct {
 type RoleInfo []string
 
 type JobInfo []string
+
+type AvatarUrl struct {
+	Url string
+}
+
+type User struct {
+	UserInfo  UserInfo
+	RoleInfo  RoleInfo
+	JobInfo   JobInfo
+	AvatarUrl AvatarUrl
+}

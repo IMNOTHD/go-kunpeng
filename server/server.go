@@ -43,7 +43,7 @@ func Start() {
 	}
 }
 
-// 由于一些奇怪的设计, 这里所有的Handler的error均返回nil, 请读取Code
+// 由于要兼容grpc-gateway, 这里所有的Handler的error均返回nil, 请直接读取Code获取状态
 // -------------------------------------
 
 func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.CacheSingleUserRequest) (*pb.CacheSingleUserResponse, error) {
@@ -58,17 +58,12 @@ func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.Cache
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
 	}
 
-	u, err := service.QueryUserInfoByUserId(db, request.UserId)
+	err = service.CacheSingleUserAllInfo(db, rc, request.UserId)
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
+
 	}
-	err = service.SetUserInfoRedis(rc, u)
-	if err != nil {
-		log.Println(err.Error())
-		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
-	}
-	// todo 只做了userinfo
 
 	return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
@@ -102,16 +97,8 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 				UserId: r.UserId,
 			})
 		}
-		if err != nil {
-			log.Println(err.Error())
-			_ = s.Send(&pb.CacheMultiSingleUserResponse{
-				Code:   pb.CacheUserResponseCode_FAIL,
-				Msg:    err.Error(),
-				UserId: r.UserId,
-			})
-		}
 
-		u, err := service.QueryUserInfoByUserId(db, r.UserId)
+		u, err := service.QueryUserByUserId(db, r.UserId)
 		if err != nil {
 			log.Println(err.Error())
 			_ = s.Send(&pb.CacheMultiSingleUserResponse{
@@ -120,7 +107,7 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 				UserId: r.UserId,
 			})
 		}
-		err = service.SetUserInfoRedis(rc, u)
+		err = service.SetUserInfoRedis(rc, &u.UserInfo)
 		if err != nil {
 			log.Println(err.Error())
 			_ = s.Send(&pb.CacheMultiSingleUserResponse{
