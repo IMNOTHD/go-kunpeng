@@ -13,14 +13,16 @@ import (
 )
 
 const (
-	_queryUserInfoByUserId  = `select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where user_id = ?`
-	_queryUserInfoByGrade   = `select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where grade = ?`
-	_queryUserInfoByClass   = `select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where class = ?`
-	_queryUserInfoAll       = `select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info`
-	_queryRoleIdByUserID    = `select role_id from common_user_role_relation where user_id = ?`
-	_queryRoleCodeByRoleId  = `select role_code from common_role where role_id = ?`
-	_queryJobInfoByUserId   = `select organization_name, member_description from organization_member where member_id = ?`
-	_queryAvatarUrlByUserId = `select avatar_url from common_user where user_id = ?`
+	_queryUserInfoByUserId       = "select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where user_id = ?"
+	_queryUserInfoByGrade        = "select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where grade = ?"
+	_queryUserInfoByClass        = "select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info where class = ?"
+	_queryUserInfoAll            = "select user_info_id, user_id, stu_id, real_name, sex, major_id, class_id, grade, enroll_date, ext_info from common_user_info"
+	_queryRoleIdByUserID         = "select role_id from common_user_role_relation where user_id = ?"
+	_queryRoleCodeByRoleId       = "select role_code from common_role where role_id = ?"
+	_queryJobInfoByUserId        = "select organization_name, member_description from organization_member where member_id = ?"
+	_queryAvatarUrlByUserId      = "select avatar_url from common_user where user_id = ?"
+	_queryActivityRecordByUserId = "select activity_record_id, activity_id, user_id, scanner_user_id, `time`, `type`, status, term, grades, ext_info, gmt_create from activity_record where user_id = ?"
+	_queryActivityByActivityId   = "select activity_name, organization_message, location, `start`, `end`, score from activity where activity_id = ?"
 )
 
 func CreateMysqlWorker() (*sql.DB, error) {
@@ -45,54 +47,28 @@ func CreateMysqlWorker() (*sql.DB, error) {
 func QueryUserByUserId(db *sql.DB, userId string) (*model.User, error) {
 	var err error
 
-	uStmt, err := db.Prepare(_queryUserInfoByUserId)
+	u, err := QueryUserInfoByUserId(db, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	row := uStmt.QueryRow(userId)
-
-	if row == nil {
-		return nil, errors.New("no such user")
-	}
-
-	var u model.UserInfoDO
-
-	err = row.Scan(&u.UserInfoID, &u.UserID, &u.StuID, &u.RealName, &u.Sex, &u.Major, &u.ClassID, &u.Grade, &u.EnrollDate, &u.ExtInfo)
+	r, err := QueryRoleInfoByUserId(db, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	e := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(u.GetExtInfo()), &e)
-
-	r, err := queryRoleInfoByUserId(db, userId)
+	j, err := QueryJobInfoByUserId(db, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	j, err := queryJobInfoByUserId(db, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	a, err := queryAvatarUrlByUserId(db, userId)
+	a, err := QueryAvatarUrlByUserId(db, userId)
 	if err != nil {
 		return nil, err
 	}
 
 	return &model.User{
-		UserInfo: model.UserInfo{
-			UserInfoID: u.UserInfoID,
-			UserID:     u.UserID,
-			StuID:      u.GetStuID(),
-			RealName:   u.GetRealName(),
-			Sex:        u.GetSex(),
-			Major:      u.GetMajor(),
-			ClassID:    u.GetClassID(),
-			Grade:      u.GetGrade(),
-			EnrollDate: u.GetEnrollDate(),
-			ExtInfo:    e},
+		UserInfo:  *u,
 		RoleInfo:  *r,
 		JobInfo:   *j,
 		AvatarUrl: *a,
@@ -116,7 +92,7 @@ func QueryUserByGrade(db *sql.DB, grade string) (*[]model.User, error) {
 		return nil, err
 	}
 
-	var u []model.User
+	u := make([]model.User, 0)
 
 	for rows.Next() {
 		var ud model.UserInfoDO
@@ -129,17 +105,17 @@ func QueryUserByGrade(db *sql.DB, grade string) (*[]model.User, error) {
 		e := make(map[string]interface{})
 		_ = json.Unmarshal([]byte(ud.GetExtInfo()), &e)
 
-		r, err := queryRoleInfoByUserId(db, ud.UserID)
+		r, err := QueryRoleInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		j, err := queryJobInfoByUserId(db, ud.UserID)
+		j, err := QueryJobInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		a, err := queryAvatarUrlByUserId(db, ud.UserID)
+		a, err := QueryAvatarUrlByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +159,7 @@ func QueryUserByClass(db *sql.DB, class string) (*[]model.User, error) {
 		return nil, err
 	}
 
-	var u []model.User
+	u := make([]model.User, 0)
 
 	for rows.Next() {
 		var ud model.UserInfoDO
@@ -196,17 +172,17 @@ func QueryUserByClass(db *sql.DB, class string) (*[]model.User, error) {
 		e := make(map[string]interface{})
 		_ = json.Unmarshal([]byte(ud.GetExtInfo()), &e)
 
-		r, err := queryRoleInfoByUserId(db, ud.UserID)
+		r, err := QueryRoleInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		j, err := queryJobInfoByUserId(db, ud.UserID)
+		j, err := QueryJobInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		a, err := queryAvatarUrlByUserId(db, ud.UserID)
+		a, err := QueryAvatarUrlByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +226,7 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 		return nil, err
 	}
 
-	var u []model.User
+	u := make([]model.User, 0)
 
 	for rows.Next() {
 		var ud model.UserInfoDO
@@ -263,17 +239,17 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 		e := make(map[string]interface{})
 		_ = json.Unmarshal([]byte(ud.GetExtInfo()), &e)
 
-		r, err := queryRoleInfoByUserId(db, ud.UserID)
+		r, err := QueryRoleInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		j, err := queryJobInfoByUserId(db, ud.UserID)
+		j, err := QueryJobInfoByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		a, err := queryAvatarUrlByUserId(db, ud.UserID)
+		a, err := QueryAvatarUrlByUserId(db, ud.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -300,7 +276,128 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 	return &u, nil
 }
 
-func queryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
+func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRecord, error) {
+	var err error
+
+	stmt, err := db.Prepare(_queryActivityRecordByUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query(userId)
+
+	a := make([]model.ActivityRecord, 0)
+	if rows == nil {
+		return &a, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var ard model.ActivityRecordDO
+
+		err = rows.Scan(&ard.ActivityRecordId, &ard.ActivityId, &ard.UserId, &ard.ScannerUserId, &ard.Time, &ard.Type, &ard.Status, &ard.Term, &ard.Grades, &ard.ExtInfo, &ard.GmtCreate)
+		if err != nil {
+			return nil, err
+		}
+
+		ad, err := QueryActivityByActivityId(db, ard.ActivityId)
+		if err != nil {
+			return nil, err
+		}
+
+		e := make(map[string]interface{})
+		_ = json.Unmarshal([]byte(ard.GetExtInfo()), &e)
+
+		su, err := QueryUserInfoByUserId(db, ard.ScannerUserId)
+		if err != nil {
+			return nil, err
+		}
+
+		a = append(a, model.ActivityRecord{
+			ActivityRecordID:    ard.GetActivityRecordId(),
+			ActivityID:          ard.ActivityId,
+			UserID:              ard.UserId,
+			ScannerUserID:       ard.ScannerUserId,
+			Time:                int(ard.GetTime()),
+			Type:                ard.GetType(),
+			Status:              ard.GetStatus(),
+			Term:                ard.GetTerm(),
+			Grades:              ard.GetGrades(),
+			ExtInfo:             e,
+			CreateTime:          ard.GetGmtCreate(),
+			ActivityName:        ad.GetActivityName(),
+			OrganizationMessage: ad.GetOrganizationMessage(),
+			Location:            ad.GetLocation(),
+			StartTime:           ad.GetStart(),
+			EndTime:             ad.GetEnd(),
+			Score:               ad.GetScore(),
+			ActivityTime:        fmt.Sprintf("%.1f", float64(ard.GetTime()/10)),
+			ScannerName:         su.RealName,
+		})
+	}
+
+	return &a, nil
+}
+
+func QueryActivityByActivityId(db *sql.DB, activityId string) (*model.ActivityDO, error) {
+	aStmt, err := db.Prepare(_queryActivityByActivityId)
+	if err != nil {
+		return nil, err
+	}
+
+	row := aStmt.QueryRow(activityId)
+
+	if row == nil {
+		return nil, errors.New("no such activity")
+	}
+
+	var a model.ActivityDO
+	err = row.Scan(&a.ActivityName, &a.OrganizationMessage, &a.Location, &a.Start, &a.End, &a.Score)
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
+func QueryUserInfoByUserId(db *sql.DB, userId string) (*model.UserInfo, error) {
+	uStmt, err := db.Prepare(_queryUserInfoByUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	row := uStmt.QueryRow(userId)
+
+	if row == nil {
+		return nil, errors.New("no such user")
+	}
+
+	var u model.UserInfoDO
+
+	err = row.Scan(&u.UserInfoID, &u.UserID, &u.StuID, &u.RealName, &u.Sex, &u.Major, &u.ClassID, &u.Grade, &u.EnrollDate, &u.ExtInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	e := make(map[string]interface{})
+	_ = json.Unmarshal([]byte(u.GetExtInfo()), &e)
+
+	return &model.UserInfo{
+		UserInfoID: u.UserInfoID,
+		UserID:     u.UserID,
+		StuID:      u.GetStuID(),
+		RealName:   u.GetRealName(),
+		Sex:        u.GetSex(),
+		Major:      u.GetMajor(),
+		ClassID:    u.GetClassID(),
+		Grade:      u.GetGrade(),
+		EnrollDate: u.GetEnrollDate(),
+		ExtInfo:    e}, nil
+}
+
+func QueryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
 	rStmt, err := db.Prepare(_queryRoleIdByUserID)
 	if err != nil {
 		return nil, err
@@ -335,7 +432,7 @@ func queryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
 	return &r, nil
 }
 
-func queryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
+func QueryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
 	jStmt, err := db.Prepare(_queryJobInfoByUserId)
 	if err != nil {
 		return nil, err
@@ -363,7 +460,7 @@ func queryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
 	return &j, nil
 }
 
-func queryAvatarUrlByUserId(db *sql.DB, userId string) (*model.AvatarUrl, error) {
+func QueryAvatarUrlByUserId(db *sql.DB, userId string) (*model.AvatarUrl, error) {
 	aStmt, err := db.Prepare(_queryAvatarUrlByUserId)
 	if err != nil {
 		return nil, err

@@ -19,6 +19,7 @@ type ActivityRecord struct {
 	StartTime           int64                  `json:"startTime"`
 	EndTime             int64                  `json:"endTime"`
 	Score               int64                  `json:"score"`
-	ActivityTime        string                 `json:"activityTime"`
-	ScannerName         string                 `json:"scannerName"`
+	// ActivityTime 只是Time的格式化
+	ActivityTime string `json:"activityTime"`
+	ScannerName  string `json:"scannerName"`
 }

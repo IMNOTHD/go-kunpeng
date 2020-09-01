@@ -31,5 +31,4 @@ canal(https://github.com/alibaba/canal)
 ### 2.3 注意事项
 现在使用的网络模式是host，如果实在无法读取到 `mysql`/`Redis` 服务, 请使用bridge连接或者直接在相应的配重中修改为内网ip进行访问  
 canal有两个release文件: deployer是后端连接mysql用；admin是web UI配置用，直接启动`startup.sh`即可使用  
-***现在还是实验阶段, Redis服务尚未编写***  
 ***docker host网络模式仅在Linux下有效，请勿在Windows/MacOS下测试***
