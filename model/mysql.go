@@ -228,5 +228,3 @@ func (a *ActivityDO) GetScore() int64 {
 	}
 	return 0
 }
-
-// -----------------------------------

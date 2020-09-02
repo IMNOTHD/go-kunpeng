@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log"
 	"net"
+	"sync"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 
@@ -72,7 +75,13 @@ func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.Cache
 }
 
 func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUserServer) error {
-	// todo 该服务需完全的重构, 做成多线程模式, 这里仅是做个示例
+	const (
+		// 允许channel缓冲的长度
+		_commodityLoad = 1000
+		// 消费者数量
+		_consumerNumber = 16
+	)
+
 	var err error
 	db, err := service.CreateMysqlWorker()
 	if err != nil {
@@ -85,11 +94,61 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 		return err
 	}
 
+	defer db.Close()
+	defer rc.Close()
+
+	var wg sync.WaitGroup
+
+	ch := make(chan string, _commodityLoad)
+
+	consumer := func(c chan string, db *sql.DB, rc *redis.Client) {
+		defer wg.Done()
+
+		for {
+			userId, ok := <-c
+
+			if !ok {
+				return
+			}
+
+			err = service.CacheSingleUserAllInfo(db, rc, userId)
+			if err != nil {
+				log.Println(err.Error())
+				xErr := s.Send(&pb.CacheMultiSingleUserResponse{
+					Code:   pb.CacheUserResponseCode_FAIL,
+					Msg:    err.Error(),
+					UserId: userId,
+				})
+				if xErr != nil {
+					log.Println(xErr.Error())
+				}
+			} else {
+				xErr := s.Send(&pb.CacheMultiSingleUserResponse{
+					Code:   pb.CacheUserResponseCode_SUCCESS,
+					UserId: userId,
+				})
+				if xErr != nil {
+					log.Println(xErr.Error())
+				}
+			}
+		}
+	}
+
+	// 启动消费者
+	wg.Add(_consumerNumber)
+	for i := 0; i < _consumerNumber; i++ {
+		go consumer(ch, db, rc)
+	}
+
 	for {
 		r, err := s.Recv()
 
 		if err == io.EOF {
-			return nil
+			break
+		}
+
+		if r == nil {
+			continue
 		}
 
 		if err != nil {
@@ -97,34 +156,24 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 			_ = s.Send(&pb.CacheMultiSingleUserResponse{
 				Code:   pb.CacheUserResponseCode_FAIL,
 				Msg:    err.Error(),
-				UserId: r.UserId,
+				UserId: r.GetUserId(),
 			})
+			continue
 		}
 
-		u, err := service.QueryUserByUserId(db, r.UserId)
-		if err != nil {
-			log.Println(err.Error())
-			_ = s.Send(&pb.CacheMultiSingleUserResponse{
-				Code:   pb.CacheUserResponseCode_FAIL,
-				Msg:    err.Error(),
-				UserId: r.UserId,
-			})
-		}
-		err = service.SetUserInfoRedis(rc, &u.UserInfo)
-		if err != nil {
-			log.Println(err.Error())
-			_ = s.Send(&pb.CacheMultiSingleUserResponse{
-				Code:   pb.CacheUserResponseCode_FAIL,
-				Msg:    err.Error(),
-				UserId: r.UserId,
-			})
-		}
-
-		_ = s.Send(&pb.CacheMultiSingleUserResponse{
-			Code: pb.CacheUserResponseCode_SUCCESS,
-		})
-
+		ch <- r.GetUserId()
 	}
+
+	// 等待通道中的数据全部被读取, 关闭channel
+	for {
+		if len(ch) == 0 {
+			break
+		}
+	}
+	close(ch)
+
+	// 等待消费者关闭
+	wg.Wait()
 
 	return nil
 }
@@ -273,9 +322,108 @@ func (c CacheActivityService) CacheSingleUserActivityRecord(ctx context.Context,
 	return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_SUCCESS}, nil
 }
 
-func (c CacheActivityService) CacheMultiSingleUserActivityRecord(server pb.CacheActivityRecord_CacheMultiSingleUserActivityRecordServer) error {
-	// todo
-	panic("implement me")
+func (c CacheActivityService) CacheMultiSingleUserActivityRecord(s pb.CacheActivityRecord_CacheMultiSingleUserActivityRecordServer) error {
+	const (
+		// 允许channel缓冲的长度
+		_commodityLoad = 1000
+		// 消费者数量
+		_consumerNumber = 16
+	)
+
+	var err error
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	var wg sync.WaitGroup
+
+	ch := make(chan string, _commodityLoad)
+
+	consumer := func(c chan string, db *sql.DB, rc *redis.Client) {
+		defer wg.Done()
+
+		for {
+			userId, ok := <-c
+
+			if !ok {
+				return
+			}
+
+			err = service.CacheSingleUserAllActivityRecord(db, rc, userId)
+			if err != nil {
+				log.Println(err.Error())
+				xErr := s.Send(&pb.CacheMultiSingleUserActivityRecordResponse{
+					Code:   pb.CacheActivityRecordResponseCode_FAIL,
+					Msg:    err.Error(),
+					UserId: userId,
+				})
+				if xErr != nil {
+					log.Println(xErr.Error())
+				}
+			} else {
+				xErr := s.Send(&pb.CacheMultiSingleUserActivityRecordResponse{
+					Code:   pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS,
+					UserId: userId,
+				})
+				if xErr != nil {
+					log.Println(xErr.Error())
+				}
+			}
+		}
+	}
+
+	// 启动消费者
+	wg.Add(_consumerNumber)
+	for i := 0; i < _consumerNumber; i++ {
+		go consumer(ch, db, rc)
+	}
+
+	for {
+		r, err := s.Recv()
+
+		if err == io.EOF {
+			break
+		}
+
+		if r == nil {
+			continue
+		}
+
+		if err != nil {
+			log.Println(err.Error())
+			_ = s.Send(&pb.CacheMultiSingleUserActivityRecordResponse{
+				Code:   pb.CacheActivityRecordResponseCode_FAIL,
+				Msg:    err.Error(),
+				UserId: r.GetUserId(),
+			})
+			continue
+		}
+
+		ch <- r.GetUserId()
+	}
+
+	// 等待通道中的数据全部被读取, 关闭channel
+	for {
+		if len(ch) == 0 {
+			break
+		}
+	}
+	close(ch)
+
+	// 等待消费者关闭
+	wg.Wait()
+
+	return nil
 }
 
 func (c CacheActivityService) CacheUserActivityRecordByGrade(ctx context.Context, request *pb.CacheUserActivityRecordByGradeRequest) (*pb.MultiCacheUserActivityRecordResponse, error) {
@@ -394,5 +542,4 @@ func (c CacheActivityService) RemoveAllUserActivityRecordCache(ctx context.Conte
 	}
 
 	return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS}, nil
-
 }
