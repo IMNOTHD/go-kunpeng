@@ -16,13 +16,12 @@ func TestCreateMysqlWorker(t *testing.T) {
 		log.Fatal(err)
 		return
 	}
+	_ = db.Close()
 
 	c, err := CreateRedisClient()
 	if err != nil {
 		log.Fatal(err.Error())
 		return
 	}
-
-	_ = db.Close()
 	_ = c.Close()
 }

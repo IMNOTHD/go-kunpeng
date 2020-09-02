@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -279,6 +280,13 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRecord, error) {
 	var err error
 
+	var ctx = context.Background()
+	rc, err := CreateRedisClient()
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+
 	stmt, err := db.Prepare(_queryActivityRecordByUserId)
 	if err != nil {
 		return nil, err
@@ -302,9 +310,26 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 			return nil, err
 		}
 
-		ad, err := QueryActivityByActivityId(db, ard.ActivityId)
+		x, err := rc.Exists(ctx, _activityRedisKey+ard.ActivityId).Result()
 		if err != nil {
 			return nil, err
+		}
+		if x <= 0 {
+			ad, err := QueryActivityByActivityId(db, ard.ActivityId)
+			if err != nil {
+				return nil, err
+			}
+			err = SetActivityRedis(rc, ard.ActivityId, &model.Activity{
+				ActivityName:        ad.GetActivityName(),
+				OrganizationMessage: ad.GetOrganizationMessage(),
+				Location:            ad.GetLocation(),
+				StartTime:           ad.GetStart(),
+				EndTime:             ad.GetEnd(),
+				Score:               ad.GetScore(),
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		e := make(map[string]interface{})
@@ -316,25 +341,19 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 		}
 
 		a = append(a, model.ActivityRecord{
-			ActivityRecordID:    ard.GetActivityRecordId(),
-			ActivityID:          ard.ActivityId,
-			UserID:              ard.UserId,
-			ScannerUserID:       ard.ScannerUserId,
-			Time:                int(ard.GetTime()),
-			Type:                ard.GetType(),
-			Status:              ard.GetStatus(),
-			Term:                ard.GetTerm(),
-			Grades:              ard.GetGrades(),
-			ExtInfo:             e,
-			CreateTime:          ard.GetGmtCreate(),
-			ActivityName:        ad.GetActivityName(),
-			OrganizationMessage: ad.GetOrganizationMessage(),
-			Location:            ad.GetLocation(),
-			StartTime:           ad.GetStart(),
-			EndTime:             ad.GetEnd(),
-			Score:               ad.GetScore(),
-			ActivityTime:        fmt.Sprintf("%.1f", float64(ard.GetTime()/10)),
-			ScannerName:         su.RealName,
+			ActivityRecordID: ard.GetActivityRecordId(),
+			ActivityID:       ard.ActivityId,
+			UserID:           ard.UserId,
+			ScannerUserID:    ard.ScannerUserId,
+			Time:             int(ard.GetTime()),
+			Type:             ard.GetType(),
+			Status:           ard.GetStatus(),
+			Term:             ard.GetTerm(),
+			Grades:           ard.GetGrades(),
+			ExtInfo:          e,
+			CreateTime:       ard.GetGmtCreate(),
+			ActivityTime:     fmt.Sprintf("%.1f", float64(ard.GetTime()/10)),
+			ScannerName:      su.RealName,
 		})
 	}
 

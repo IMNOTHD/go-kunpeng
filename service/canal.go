@@ -1,11 +1,13 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/proto"
 
 	"github.com/withlin/canal-go/client"
@@ -21,6 +23,13 @@ func StartCanalClient() {
 		log.Println(err)
 		os.Exit(1)
 	}
+
+	rc, err := CreateRedisClient()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rc.Close()
 
 	// https://github.com/alibaba/canal/wiki/AdminGuide
 	//mysql 数据解析关注的表，Perl正则表达式.
@@ -42,7 +51,6 @@ func StartCanalClient() {
 	}
 
 	for {
-
 		message, err := connector.Get(100, nil, nil)
 		if err != nil {
 			log.Println(err)
@@ -55,8 +63,50 @@ func StartCanalClient() {
 			continue
 		}
 
-		printEntry(message.Entries)
+		// 打数据变更log
+		go printEntry(message.Entries)
+		// 数据处理协程
+		go handleData(message.Entries, rc)
+	}
+}
 
+func handleData(es []protocol.Entry, c *redis.Client) {
+	var ctx = context.Background()
+
+	for _, entry := range es {
+		if entry.GetEntryType() == protocol.EntryType_TRANSACTIONBEGIN || entry.GetEntryType() == protocol.EntryType_TRANSACTIONEND {
+			continue
+		}
+
+		rowChange := new(protocol.RowChange)
+		err := proto.Unmarshal(entry.GetStoreValue(), rowChange)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+
+		eventType := rowChange.GetEventType()
+		header := entry.GetHeader()
+		rowDatas := rowChange.GetRowDatas()
+
+		switch header.GetTableName() {
+		case "common_user_info":
+			break
+		case "common_user_role_relation":
+			break
+		case "common_role":
+			break
+		case "organization_member":
+			break
+		case "common_user":
+			break
+		case "activity_record":
+			break
+		case "activity":
+			break
+		default:
+			break
+		}
 	}
 }
 

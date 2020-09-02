@@ -11,15 +11,18 @@ type ActivityRecord struct {
 	Term             string `json:"term"`
 	Grades           string `json:"grades"`
 	// ExtInfo 数据库中存储的是json字符串
-	ExtInfo             map[string]interface{} `json:"extInfo"`
-	CreateTime          int64                  `json:"createTime"`
-	ActivityName        string                 `json:"activityName"`
-	OrganizationMessage string                 `json:"organizationMessage"`
-	Location            string                 `json:"location"`
-	StartTime           int64                  `json:"startTime"`
-	EndTime             int64                  `json:"endTime"`
-	Score               int64                  `json:"score"`
+	ExtInfo    map[string]interface{} `json:"extInfo"`
+	CreateTime int64                  `json:"createTime"`
 	// ActivityTime 只是Time的格式化
 	ActivityTime string `json:"activityTime"`
 	ScannerName  string `json:"scannerName"`
+}
+
+type Activity struct {
+	ActivityName        string `json:"activityName"`
+	OrganizationMessage string `json:"organizationMessage"`
+	Location            string `json:"location"`
+	StartTime           int64  `json:"startTime"`
+	EndTime             int64  `json:"endTime"`
+	Score               int64  `json:"score"`
 }

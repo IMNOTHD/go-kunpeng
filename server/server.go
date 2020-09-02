@@ -55,13 +55,13 @@ func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.Cache
 		log.Println(err.Error())
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	err = service.CacheSingleUserAllInfo(db, rc, request.GetUserId())
@@ -88,13 +88,13 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 		log.Println(err.Error())
 		return err
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	var wg sync.WaitGroup
@@ -184,13 +184,13 @@ func (c CacheUserService) CacheUserByGrade(ctx context.Context, request *pb.Cach
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheUserByGrade(db, rc, request.GetGrade())
@@ -215,13 +215,13 @@ func (c CacheUserService) CacheUserByClass(ctx context.Context, request *pb.Cach
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheUserByClass(db, rc, request.GetClass())
@@ -246,13 +246,13 @@ func (c CacheUserService) CacheAllUser(ctx context.Context, e *empty.Empty) (*pb
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheAllUser(db, rc)
@@ -277,7 +277,6 @@ func (c CacheUserService) RemoveAllUserCache(ctx context.Context, e *empty.Empty
 		log.Println(err.Error())
 		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
 	}
-
 	defer rc.Close()
 
 	sc, err := service.CleanAllUserAllInfo(rc)
@@ -304,13 +303,13 @@ func (c CacheActivityService) CacheSingleUserActivityRecord(ctx context.Context,
 		log.Println(err.Error())
 		return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL, Msg: err.Error()}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL, Msg: err.Error()}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	err = service.CacheSingleUserAllActivityRecord(db, rc, request.GetUserId())
@@ -336,13 +335,13 @@ func (c CacheActivityService) CacheMultiSingleUserActivityRecord(s pb.CacheActiv
 		log.Println(err.Error())
 		return err
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	var wg sync.WaitGroup
@@ -432,13 +431,13 @@ func (c CacheActivityService) CacheUserActivityRecordByGrade(ctx context.Context
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheActivityRecordByGrade(db, rc, request.GetGrade())
@@ -463,13 +462,13 @@ func (c CacheActivityService) CacheUserActivityRecordByClass(ctx context.Context
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheActivityRecordByClass(db, rc, request.GetClass())
@@ -494,13 +493,13 @@ func (c CacheActivityService) CacheAllUserActivityRecord(ctx context.Context, e 
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
+	defer db.Close()
+
 	rc, err := service.CreateRedisClient()
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
 	}
-
-	defer db.Close()
 	defer rc.Close()
 
 	sc, err := service.CacheAllUserActivityRecord(db, rc)

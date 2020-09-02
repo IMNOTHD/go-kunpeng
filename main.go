@@ -7,7 +7,8 @@ import (
 
 func main() {
 	// 启动canal服务
-	service.StartCanalClient()
+	go service.StartCanalClient()
+
 	// 启动grpc接口服务
 	server.Start()
 }

@@ -19,6 +19,7 @@ const (
 	_jobInfoRedisKey        = "betahouse:heatae:user:jobInfo:"
 	_avatarUrlRedisKey      = "betahouse:heatae:user:avatarUrl:"
 	_activityRecordRedisKey = "betahouse:heatae:activity:activityRecord:"
+	_activityRedisKey       = "betahouse:heatae:activity:activity:"
 )
 
 func CreateRedisClient() (*redis.Client, error) {
@@ -59,7 +60,7 @@ func CleanUserAllInfo(c *redis.Client, userId string) error {
 func CleanAllUserAllInfo(c *redis.Client) (int32, error) {
 	var ctx = context.Background()
 
-	k, err := c.Keys(ctx, _userInfoRedisKey+"*").Result()
+	k, err := c.Keys(ctx, _userRedisKey+"*").Result()
 	if err != nil {
 		return 0, err
 	}
@@ -181,6 +182,19 @@ func SetAvatarUrlRedis(c *redis.Client, userId string, avatarUrl *model.AvatarUr
 	var ctx = context.Background()
 
 	val := c.Set(ctx, _avatarUrlRedisKey+userId, avatarUrl.Url, 0)
+
+	if val.Err() != nil {
+		return val.Err()
+	}
+
+	return nil
+}
+
+func SetActivityRedis(c *redis.Client, activityId string, activity *model.Activity) error {
+	var ctx = context.Background()
+
+	record, _ := json.Marshal(activity)
+	val := c.Set(ctx, _activityRedisKey+activityId, record, 0)
 
 	if val.Err() != nil {
 		return val.Err()

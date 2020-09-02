@@ -74,10 +74,26 @@ example of one:
 ---
 
 ## activity
+### activity 
+##### key
+
+|type|`string`|
+|:---|:---|
+|key|`betahouse:heatae:activity:activity:{activityId}`|  
+
+##### value
+一个json string  
+example:
+```json
+{"activityName":"科普知识讲座","OrganizationMessage":"红十字协会","location":"","startTime":1538961914000,"endTime":1538969114000,"score":0}
+```
+
+---
+
 ### activity record
 ##### key
 
-|type|`zset`|
+|type|`string`|
 |:---|:---|
 |key|`betahouse:heatae:activity:activityRecord:{userId}:{activityType}`|  
 
@@ -88,3 +104,4 @@ example of one:
 {"activityRecordId":"201903202000435094633110022019","activityId":"201903201351484863392210012019","userId":"201811302142192259540001201847","scannerUserId":"201811302141557664490001201843","time":0,"type":"lectureActivity","status":"ENABLE","term":"2018B","grades":"","extInfo":{"scannerName":"黄奕雯"},"createTime":1553083243000,"activityName":"《驴得水》话剧公演","organizationMessage":"大学生艺术团","location":null,"startTime":1553078700000,"endTime":1553085900000,"score":null,"activityTime":"0.0","scannerName":"黄奕雯"}
 ```
 *警告：必须注意数据顺序, 在数据库中的顺序越靠前，Score越小*
+*请自行组装入activity信息*
