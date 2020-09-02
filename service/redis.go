@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
@@ -12,6 +13,7 @@ import (
 )
 
 const (
+	_userRedisKey           = "betahouse:heatae:user:"
 	_userInfoRedisKey       = "betahouse:heatae:user:userInfo"
 	_roleInfoRedisKey       = "betahouse:heatae:user:roleInfo:"
 	_jobInfoRedisKey        = "betahouse:heatae:user:jobInfo:"
@@ -52,6 +54,86 @@ func CleanUserAllInfo(c *redis.Client, userId string) error {
 	}
 
 	return nil
+}
+
+func CleanAllUserAllInfo(c *redis.Client) (int32, error) {
+	var ctx = context.Background()
+
+	k, err := c.Keys(ctx, _userInfoRedisKey+"*").Result()
+	if err != nil {
+		return 0, err
+	}
+
+	var successCount int32 = 0
+	isFullSuccess := true
+
+	for _, v := range k {
+		_, err := c.Del(ctx, v).Result()
+		if err != nil {
+			isFullSuccess = false
+		}
+		successCount++
+	}
+
+	if isFullSuccess {
+		return successCount, nil
+	} else {
+		return successCount, errors.New("some remove failed")
+	}
+}
+
+func CleanUserAllActivityRecord(c *redis.Client, userId string) error {
+	var ctx = context.Background()
+
+	multiKey := fmt.Sprintf("%s%s*", _activityRecordRedisKey, userId)
+
+	k, err := c.Keys(ctx, multiKey).Result()
+	if err != nil {
+		return err
+	}
+
+	pipe := c.TxPipeline()
+
+	defer pipe.Close()
+
+	for _, v := range k {
+		pipe.Del(ctx, v)
+	}
+
+	_, err = pipe.Exec(ctx)
+
+	if err != nil {
+		_ = pipe.Discard()
+		return err
+	}
+
+	return nil
+}
+
+func CleanAllUserAllActivityRecord(c *redis.Client) (int32, error) {
+	var ctx = context.Background()
+
+	k, err := c.Keys(ctx, _activityRecordRedisKey+"*").Result()
+	if err != nil {
+		return 0, err
+	}
+
+	var successCount int32 = 0
+	isFullSuccess := true
+
+	for _, v := range k {
+		_, err := c.Del(ctx, v).Result()
+		if err != nil {
+			isFullSuccess = false
+		}
+		successCount++
+	}
+
+	if isFullSuccess {
+		return successCount, nil
+	} else {
+		return successCount, errors.New("some remove failed")
+	}
 }
 
 func SetUserInfoRedis(c *redis.Client, userInfo *model.UserInfo) error {
@@ -107,23 +189,25 @@ func SetAvatarUrlRedis(c *redis.Client, userId string, avatarUrl *model.AvatarUr
 	return nil
 }
 
-func AddActivityRecordRedis(c *redis.Client, activityRecord *model.ActivityRecord) error {
+func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRecord) error {
 	var ctx = context.Background()
 
-	record, _ := json.Marshal(activityRecord)
-	key := fmt.Sprintf("%s%s:%s", _activityRecordRedisKey, activityRecord.UserID, activityRecord.Type)
+	for _, v := range *activityRecord {
+		record, _ := json.Marshal(v)
+		key := fmt.Sprintf("%s%s:%s", _activityRecordRedisKey, v.UserID, v.Type)
 
-	count, err := c.ZCard(ctx, key).Result()
-	if err != nil {
-		return err
-	}
+		count, err := c.ZCard(ctx, key).Result()
+		if err != nil {
+			return err
+		}
 
-	fmt.Println(count)
+		fmt.Println(count)
 
-	val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
+		val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
 
-	if val.Err() != nil {
-		return val.Err()
+		if val.Err() != nil {
+			return val.Err()
+		}
 	}
 
 	return nil

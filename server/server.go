@@ -37,7 +37,7 @@ func Start() {
 
 	httpServer := ProvideHttp(Address, grpcServer)
 
-	//用服务器 Serve() 方法以及我们的端口信息区实现阻塞等待，直到进程被杀死或者 Stop() 被调用
+	//用服务器 Serve() 方法以及端口信息区实现阻塞等待，直到进程被杀死或者 Stop() 被调用
 	if err = httpServer.Serve(listener); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -58,7 +58,10 @@ func (c CacheUserService) CacheSingleUser(ctx context.Context, request *pb.Cache
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
 	}
 
-	err = service.CacheSingleUserAllInfo(db, rc, request.UserId)
+	defer db.Close()
+	defer rc.Close()
+
+	err = service.CacheSingleUserAllInfo(db, rc, request.GetUserId())
 	if err != nil {
 		log.Println(err.Error())
 		return &pb.CacheSingleUserResponse{Code: pb.CacheUserResponseCode_FAIL, Msg: err.Error()}, nil
@@ -127,43 +130,269 @@ func (c CacheUserService) CacheMultiSingleUser(s pb.CacheUser_CacheMultiSingleUs
 }
 
 func (c CacheUserService) CacheUserByGrade(ctx context.Context, request *pb.CacheUserByGradeRequest) (*pb.MultiCacheUserResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheUserByGrade(db, rc, request.GetGrade())
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserResponse{
+			Code:         pb.CacheUserResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
 
 func (c CacheUserService) CacheUserByClass(ctx context.Context, request *pb.CacheUserByClassRequest) (*pb.MultiCacheUserResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheUserByClass(db, rc, request.GetClass())
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserResponse{
+			Code:         pb.CacheUserResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
 
 func (c CacheUserService) CacheAllUser(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheAllUser(db, rc)
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserResponse{
+			Code:         pb.CacheUserResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
 
 func (c CacheUserService) RemoveAllUserCache(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserResponse, error) {
-	panic("implement me")
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+	}
+
+	defer rc.Close()
+
+	sc, err := service.CleanAllUserAllInfo(rc)
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserResponse{
+			Code:         pb.CacheUserResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserResponse{Code: pb.CacheUserResponseCode_SUCCESS}, nil
 }
 
 // -------------------------------------
 
 func (c CacheActivityService) CacheSingleUserActivityRecord(ctx context.Context, request *pb.CacheSingleUserActivityRecordRequest) (*pb.CacheSingleUserActivityRecordResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	err = service.CacheSingleUserAllActivityRecord(db, rc, request.GetUserId())
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL, Msg: err.Error()}, nil
+	}
+
+	return &pb.CacheSingleUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_SUCCESS}, nil
 }
 
 func (c CacheActivityService) CacheMultiSingleUserActivityRecord(server pb.CacheActivityRecord_CacheMultiSingleUserActivityRecordServer) error {
+	// todo
 	panic("implement me")
 }
 
 func (c CacheActivityService) CacheUserActivityRecordByGrade(ctx context.Context, request *pb.CacheUserActivityRecordByGradeRequest) (*pb.MultiCacheUserActivityRecordResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheActivityRecordByGrade(db, rc, request.GetGrade())
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserActivityRecordResponse{
+			Code:         pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS}, nil
 }
 
 func (c CacheActivityService) CacheUserActivityRecordByClass(ctx context.Context, request *pb.CacheUserActivityRecordByClassRequest) (*pb.MultiCacheUserActivityRecordResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheActivityRecordByClass(db, rc, request.GetClass())
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserActivityRecordResponse{
+			Code:         pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS}, nil
 }
 
 func (c CacheActivityService) CacheAllUserActivityRecord(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserActivityRecordResponse, error) {
-	panic("implement me")
+	db, err := service.CreateMysqlWorker()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+
+	defer db.Close()
+	defer rc.Close()
+
+	sc, err := service.CacheAllUserActivityRecord(db, rc)
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserActivityRecordResponse{
+			Code:         pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS}, nil
 }
 
 func (c CacheActivityService) RemoveAllUserActivityRecordCache(ctx context.Context, e *empty.Empty) (*pb.MultiCacheUserActivityRecordResponse, error) {
-	panic("implement me")
+	rc, err := service.CreateRedisClient()
+	if err != nil {
+		log.Println(err.Error())
+		return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+	}
+
+	defer rc.Close()
+
+	sc, err := service.CleanAllUserAllActivityRecord(rc)
+	if err != nil {
+		if sc == 0 {
+			log.Println(err.Error())
+			return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_FAIL}, nil
+		}
+
+		return &pb.MultiCacheUserActivityRecordResponse{
+			Code:         pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS,
+			SuccessCount: sc,
+		}, nil
+	}
+
+	return &pb.MultiCacheUserActivityRecordResponse{Code: pb.CacheActivityRecordResponseCode_PARTIAL_SUCCESS}, nil
+
 }

@@ -81,7 +81,7 @@ message MultiCacheUserResponse {
 }
 
 message CacheUserByClassRequest {
-    string grade = 1;
+    string class = 1;
 }
 
 message CacheUserByGradeRequest {

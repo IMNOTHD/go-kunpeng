@@ -51,7 +51,7 @@ func StartCanalClient() {
 		batchId := message.Id
 		if batchId == -1 || len(message.Entries) <= 0 {
 			time.Sleep(cc.PollingInterval * time.Millisecond)
-			fmt.Println("===暂时没有数据更新===")
+			// fmt.Println("===暂时没有数据更新===")
 			continue
 		}
 
