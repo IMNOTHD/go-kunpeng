@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -71,7 +70,6 @@ func StartCanalClient() {
 }
 
 func handleData(es []protocol.Entry, c *redis.Client) {
-	var ctx = context.Background()
 
 	for _, entry := range es {
 		if entry.GetEntryType() == protocol.EntryType_TRANSACTIONBEGIN || entry.GetEntryType() == protocol.EntryType_TRANSACTIONEND {
@@ -85,9 +83,7 @@ func handleData(es []protocol.Entry, c *redis.Client) {
 			continue
 		}
 
-		eventType := rowChange.GetEventType()
 		header := entry.GetHeader()
-		rowDatas := rowChange.GetRowDatas()
 
 		switch header.GetTableName() {
 		case "common_user_info":
@@ -120,22 +116,20 @@ func printEntry(entrys []protocol.Entry) {
 
 		err := proto.Unmarshal(entry.GetStoreValue(), rowChange)
 		checkError(err)
-		if rowChange != nil {
-			eventType := rowChange.GetEventType()
-			header := entry.GetHeader()
-			fmt.Println(fmt.Sprintf("================> binlog[%s : %d],name[%s,%s], eventType: %s", header.GetLogfileName(), header.GetLogfileOffset(), header.GetSchemaName(), header.GetTableName(), header.GetEventType()))
+		eventType := rowChange.GetEventType()
+		header := entry.GetHeader()
+		fmt.Println(fmt.Sprintf("================> binlog[%s : %d],name[%s,%s], eventType: %s", header.GetLogfileName(), header.GetLogfileOffset(), header.GetSchemaName(), header.GetTableName(), header.GetEventType()))
 
-			for _, rowData := range rowChange.GetRowDatas() {
-				if eventType == protocol.EventType_DELETE {
-					printColumn(rowData.GetBeforeColumns())
-				} else if eventType == protocol.EventType_INSERT {
-					printColumn(rowData.GetAfterColumns())
-				} else {
-					fmt.Println("-------> before")
-					printColumn(rowData.GetBeforeColumns())
-					fmt.Println("-------> after")
-					printColumn(rowData.GetAfterColumns())
-				}
+		for _, rowData := range rowChange.GetRowDatas() {
+			if eventType == protocol.EventType_DELETE {
+				printColumn(rowData.GetBeforeColumns())
+			} else if eventType == protocol.EventType_INSERT {
+				printColumn(rowData.GetAfterColumns())
+			} else {
+				fmt.Println("-------> before")
+				printColumn(rowData.GetBeforeColumns())
+				fmt.Println("-------> after")
+				printColumn(rowData.GetAfterColumns())
 			}
 		}
 	}
