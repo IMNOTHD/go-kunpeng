@@ -36,16 +36,15 @@ func TestCreateRedisClient(t *testing.T) {
 		ExtInfo: map[string]interface{}{
 			"scannerName": "庄子琛",
 		},
-		CreateTime:          1559131353000,
-		ActivityName:        "第四届礼仪风采大赛",
-		OrganizationMessage: "学生会",
-		StartTime:           1558667700000,
-		EndTime:             1558667940000,
-		ActivityTime:        "0.0",
-		ScannerName:         "庄子琛",
+		CreateTime:   1559131353000,
+		ActivityTime: "0.0",
+		ScannerName:  "庄子琛",
 	}
 
-	err = AddActivityRecordRedis(c, a)
+	x := make([]model.ActivityRecord, 0)
+	x = append(x, *a)
+
+	err = AddActivityRecordRedis(c, &x)
 
 	if err != nil {
 		log.Fatal(err)

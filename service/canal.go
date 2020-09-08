@@ -143,7 +143,6 @@ func printColumn(columns []*protocol.Column) {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
+		log.Fatalf("Fatal error: %s", err.Error())
 	}
 }
