@@ -4,7 +4,6 @@ import (
 	"database/sql"
 )
 
-// EnrollDate 数据库中为datetime
 type UserInfoDO struct {
 	UserInfoID string
 	UserID     string
@@ -14,6 +13,7 @@ type UserInfoDO struct {
 	Major      sql.NullString
 	ClassID    sql.NullString
 	Grade      sql.NullString
+	// EnrollDate 数据库中为datetime
 	EnrollDate sql.NullTime
 	ExtInfo    sql.NullString
 }
@@ -27,7 +27,6 @@ type AvatarUrlDO struct {
 	Url sql.NullString
 }
 
-// GmtCreate 数据库中为datetime
 type ActivityRecordDO struct {
 	ActivityRecordId sql.NullString
 	ActivityId       string
@@ -39,7 +38,8 @@ type ActivityRecordDO struct {
 	Term             sql.NullString
 	Grades           sql.NullString
 	ExtInfo          sql.NullString
-	GmtCreate        sql.NullTime
+	// GmtCreate 数据库中为datetime
+	GmtCreate sql.NullTime
 }
 
 type ActivityDO struct {
