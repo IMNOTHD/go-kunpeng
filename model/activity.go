@@ -1,28 +1,28 @@
 package model
 
 type ActivityRecord struct {
-	ActivityRecordID string `json:"activityRecordId"`
-	ActivityID       string `json:"activityId"`
-	UserID           string `json:"userId"`
-	ScannerUserID    string `json:"scannerUserId"`
-	Time             int    `json:"time"`
-	Type             string `json:"type"`
-	Status           string `json:"status"`
-	Term             string `json:"term"`
-	Grades           string `json:"grades"`
+	ActivityRecordID string `json:"activityRecordId" db:"activity_record_id"`
+	ActivityID       string `json:"activityId" db:"activity_id"`
+	UserID           string `json:"userId" db:"user_id"`
+	ScannerUserID    string `json:"scannerUserId" db:"scanner_user_id"`
+	Time             int    `json:"time" db:"time"`
+	Type             string `json:"type" db:"type"`
+	Status           string `json:"status" db:"status"`
+	Term             string `json:"term" db:"term"`
+	Grades           string `json:"grades" db:"grades"`
 	// ExtInfo 数据库中存储的是json字符串
-	ExtInfo    map[string]interface{} `json:"extInfo"`
-	CreateTime int64                  `json:"createTime"`
+	ExtInfo    map[string]interface{} `json:"extInfo" db:"ext_info"`
+	CreateTime int64                  `json:"createTime" db:"gmt_create"`
 	// ActivityTime 只是Time的格式化
 	ActivityTime string `json:"activityTime"`
 	ScannerName  string `json:"scannerName"`
 }
 
 type Activity struct {
-	ActivityName        string `json:"activityName"`
-	OrganizationMessage string `json:"organizationMessage"`
-	Location            string `json:"location"`
-	StartTime           int64  `json:"startTime"`
-	EndTime             int64  `json:"endTime"`
-	Score               int64  `json:"score"`
+	ActivityName        string `json:"activityName" db:"activity_name"`
+	OrganizationMessage string `json:"organizationMessage" db:"organization_message"`
+	Location            string `json:"location" db:"location"`
+	StartTime           int64  `json:"startTime" db:"start"`
+	EndTime             int64  `json:"endTime" db:"end"`
+	Score               int64  `json:"score" db:"score"`
 }

@@ -22,7 +22,7 @@ const (
 	_queryRoleCodeByRoleId       = "select role_code from common_role where role_id = ?"
 	_queryJobInfoByUserId        = "select organization_name, member_description from organization_member where member_id = ?"
 	_queryAvatarUrlByUserId      = "select avatar_url from common_user where user_id = ?"
-	_queryActivityRecordByUserId = "select activity_record_id, activity_id, user_id, scanner_user_id, `time`, `type`, status, term, grades, ext_info, gmt_create from activity_record where user_id = ?"
+	_queryActivityRecordByUserId = "select activity_record_id, activity_id, user_id, scanner_user_id, `time`, `type`, `status`, term, grades, ext_info, gmt_create from activity_record where user_id = ?"
 	_queryActivityByActivityId   = "select activity_name, organization_message, location, `start`, `end`, score from activity where activity_id = ?"
 )
 
@@ -414,6 +414,22 @@ func QueryUserInfoByUserId(db *sql.DB, userId string) (*model.UserInfo, error) {
 		Grade:      u.GetGrade(),
 		EnrollDate: u.GetEnrollDate(),
 		ExtInfo:    e}, nil
+}
+
+func QueryRoleCodeByRoleId(db *sql.DB, roleId string) (string, error) {
+	var roleCode string
+	cStmt, err := db.Prepare(_queryRoleCodeByRoleId)
+	if err != nil {
+		return "", err
+	}
+
+	row := cStmt.QueryRow(roleId)
+	err = row.Scan(&roleCode)
+	if err != nil {
+		return "", err
+	}
+
+	return roleCode, nil
 }
 
 func QueryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {

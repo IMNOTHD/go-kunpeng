@@ -150,6 +150,18 @@ func SetUserInfoRedis(c *redis.Client, userInfo *model.UserInfo) error {
 	return nil
 }
 
+func CleanUserInfoRedis(c *redis.Client, userId string) error {
+	var ctx = context.Background()
+
+	val := c.HDel(ctx, _userInfoRedisKey, userId)
+
+	if val.Err() != nil {
+		return val.Err()
+	}
+
+	return nil
+}
+
 func AddRoleInfoRedis(c *redis.Client, userId string, roleInfo *model.RoleInfo) error {
 	var ctx = context.Background()
 
@@ -164,6 +176,18 @@ func AddRoleInfoRedis(c *redis.Client, userId string, roleInfo *model.RoleInfo) 
 	return nil
 }
 
+func CleanRoleInfoRedis(c *redis.Client, userId string) error {
+	var ctx = context.Background()
+
+	val := c.Del(ctx, _roleInfoRedisKey+userId)
+
+	if val.Err() != nil {
+		return val.Err()
+	}
+
+	return nil
+}
+
 func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) error {
 	var ctx = context.Background()
 
@@ -173,6 +197,18 @@ func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) err
 		if val.Err() != nil {
 			return val.Err()
 		}
+	}
+
+	return nil
+}
+
+func CleanJobInfoRedis(c *redis.Client, userId string) error {
+	var ctx = context.Background()
+
+	val := c.Del(ctx, _jobInfoRedisKey+userId)
+
+	if val.Err() != nil {
+		return val.Err()
 	}
 
 	return nil
@@ -193,8 +229,28 @@ func SetAvatarUrlRedis(c *redis.Client, userId string, avatarUrl *model.AvatarUr
 func SetActivityRedis(c *redis.Client, activityId string, activity *model.Activity) error {
 	var ctx = context.Background()
 
+	if activityId == "" {
+		return errors.New("activityId null")
+	}
+
 	record, _ := json.Marshal(activity)
 	val := c.Set(ctx, _activityRedisKey+activityId, record, 0)
+
+	if val.Err() != nil {
+		return val.Err()
+	}
+
+	return nil
+}
+
+func CleanActivityRedis(c *redis.Client, activityId string) error {
+	var ctx = context.Background()
+
+	if activityId == "" {
+		return errors.New("activityId null")
+	}
+
+	val := c.Del(ctx, _activityRedisKey+activityId)
 
 	if val.Err() != nil {
 		return val.Err()

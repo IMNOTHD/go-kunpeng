@@ -4,6 +4,8 @@ services:
   canal-deployer:
     image: c-deployer:0.0.1
     container_name: c-deployer
+    environment:
+      - TZ=Asia/Shanghai
     build:
       context: canal.deployer-1.1.4
       dockerfile: Dockerfile
@@ -17,6 +19,8 @@ services:
   go-kunpeng:
     image: go-kunpeng:0.0.1
     container_name: go-kunpeng
+    environment:
+      - TZ=Asia/Shanghai
     build:
       context: .
       dockerfile: Dockerfile
