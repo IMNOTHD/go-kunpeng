@@ -5,6 +5,10 @@ MAINTAINER imnothd "ideshenghe@gmail.com"
 WORKDIR /go/src/github.com/IMNOTHD/go-kunpeng
 
 COPY service service
+COPY model model
+COPY config config
+COPY api api
+COPY server server
 COPY go.mod go.mod
 COPY go.sum go.sum
 COPY main.go main.go
