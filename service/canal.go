@@ -68,7 +68,7 @@ func StartCanalClient() {
 		batchId := message.Id
 		if batchId == -1 || len(message.Entries) <= 0 {
 			time.Sleep(cc.PollingInterval * time.Millisecond)
-			// fmt.Println("===暂时没有数据更新===")
+			// log.Println("===暂时没有数据更新===")
 			continue
 		}
 
@@ -283,16 +283,16 @@ func printEntry(entrys []protocol.Entry) {
 		checkError(err)
 		eventType := rowChange.GetEventType()
 		header := entry.GetHeader()
-		fmt.Println(fmt.Sprintf("================> binlog[%s : %d],name[%s,%s], eventType: %s", header.GetLogfileName(), header.GetLogfileOffset(), header.GetSchemaName(), header.GetTableName(), header.GetEventType()))
+		log.Println(fmt.Sprintf("================> binlog[%s : %d],name[%s,%s], eventType: %s", header.GetLogfileName(), header.GetLogfileOffset(), header.GetSchemaName(), header.GetTableName(), header.GetEventType()))
 		for _, rowData := range rowChange.GetRowDatas() {
 			if eventType == protocol.EventType_DELETE {
 				printColumn(rowData.GetBeforeColumns())
 			} else if eventType == protocol.EventType_INSERT {
 				printColumn(rowData.GetAfterColumns())
 			} else {
-				fmt.Println("-------> before")
+				log.Println("-------> before")
 				printColumn(rowData.GetBeforeColumns())
-				fmt.Println("-------> after")
+				log.Println("-------> after")
 				printColumn(rowData.GetAfterColumns())
 			}
 		}
@@ -301,7 +301,7 @@ func printEntry(entrys []protocol.Entry) {
 
 func printColumn(columns []*protocol.Column) {
 	for _, col := range columns {
-		fmt.Println(fmt.Sprintf("%s : %s  update= %t", col.GetName(), col.GetValue(), col.GetUpdated()))
+		log.Println(fmt.Sprintf("%s : %s  update= %t", col.GetName(), col.GetValue(), col.GetUpdated()))
 	}
 }
 
@@ -387,14 +387,14 @@ func Assign(ptr interface{}, m M) error {
 					tmp := make(map[string]interface{})
 					err := json.Unmarshal([]byte(e.Value), &tmp)
 					if err != nil {
-						fmt.Println("Unmarshal failed:", err)
+						log.Println("Unmarshal failed:", err)
 					}
 
 					// 黑科技, 别问, 我也不知道怎么写出来的
 					*(*map[string]interface{})(unsafe.Pointer(v.Field(i).Addr().Pointer())) = tmp
 
 				} else {
-					fmt.Println("who fucking did this stupid variable, do write this stupid reflect")
+					log.Println("who fucking did this stupid variable, do write this stupid reflect")
 				}
 			}
 		}

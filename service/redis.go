@@ -271,8 +271,6 @@ func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRec
 			return err
 		}
 
-		//fmt.Println(count)
-
 		val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
 
 		if val.Err() != nil {

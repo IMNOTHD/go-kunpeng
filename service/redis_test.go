@@ -52,5 +52,5 @@ func TestCreateRedisClient(t *testing.T) {
 
 	v, err := c.ZRange(ctx, fmt.Sprintf("%s:%s:%s", _activityRecordRedisKey, a.UserID, a.Type), 0, -1).Result()
 
-	fmt.Println(v)
+	log.Println(v)
 }

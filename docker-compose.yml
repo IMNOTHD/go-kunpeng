@@ -16,6 +16,8 @@ services:
       - 11112:11112
     restart: always
     network_mode: host
+    volumes:
+    - /home/go-kunpeng/canal-deployer/logs:/c-deployer/logs
   go-kunpeng:
     image: go-kunpeng:0.0.1
     container_name: go-kunpeng
