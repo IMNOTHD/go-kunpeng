@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/golang/protobuf/proto"
 
@@ -371,12 +373,29 @@ func Assign(ptr interface{}, m M) error {
 				tmp, _ := strconv.ParseInt(e.Value, 10, 64)
 				v.Field(i).SetInt(tmp)
 			case "varchar":
-				if e.IsNull {
-					v.Field(i).SetString("")
-					continue
-				}
+				if v.Field(i).Kind() == reflect.String {
+					if e.IsNull {
+						v.Field(i).SetString("")
+						continue
+					}
+					v.Field(i).SetString(e.Value)
+				} else if v.Field(i).Kind() == reflect.Map {
+					if e.IsNull {
+						continue
+					}
 
-				v.Field(i).SetString(e.Value)
+					tmp := make(map[string]interface{})
+					err := json.Unmarshal([]byte(e.Value), &tmp)
+					if err != nil {
+						fmt.Println("Unmarshal failed:", err)
+					}
+
+					// 黑科技, 别问, 我也不知道怎么写出来的
+					*(*map[string]interface{})(unsafe.Pointer(v.Field(i).Addr().Pointer())) = tmp
+
+				} else {
+					fmt.Println("who fucking did this stupid variable, do write this stupid reflect")
+				}
 			}
 		}
 	}
