@@ -16,7 +16,7 @@ import (
 
 func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server {
 	ctx := context.Background()
-	gwmux := runtime.NewServeMux()
+	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
 	dopts := []grpc.DialOption{grpc.WithInsecure()}
 
 	var err error
