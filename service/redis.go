@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	_userRedisKey           = "betahouse:heatae:user:"
-	_userInfoRedisKey       = "betahouse:heatae:user:userInfo"
-	_roleInfoRedisKey       = "betahouse:heatae:user:roleInfo:"
-	_jobInfoRedisKey        = "betahouse:heatae:user:jobInfo:"
-	_avatarUrlRedisKey      = "betahouse:heatae:user:avatarUrl:"
-	_activityRecordRedisKey = "betahouse:heatae:activity:activityRecord:"
-	_activityRedisKey       = "betahouse:heatae:activity:activity:"
+	_userRedisKey           = "betahouse:haetae:user:"
+	_userInfoRedisKey       = "betahouse:haetae:user:userInfo"
+	_roleInfoRedisKey       = "betahouse:haetae:user:roleInfo:"
+	_jobInfoRedisKey        = "betahouse:haetae:user:jobInfo:"
+	_avatarUrlRedisKey      = "betahouse:haetae:user:avatarUrl:"
+	_activityRecordRedisKey = "betahouse:haetae:activity:activityRecord:"
+	_activityRedisKey       = "betahouse:haetae:activity:activity:"
 )
 
 func CreateRedisClient() (*redis.Client, error) {
@@ -271,7 +271,7 @@ func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRec
 			return err
 		}
 
-		fmt.Println(count)
+		//fmt.Println(count)
 
 		val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
 

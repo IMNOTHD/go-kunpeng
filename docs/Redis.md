@@ -13,7 +13,7 @@ db: check config/redis
 
 |type|`hashMap`|
 |:---|:---|
-|key|`betahouse:heatae:user:userInfo`|  
+|key|`betahouse:haetae:user:userInfo`|  
 |hash key|`userId`|
 
 ##### value
@@ -30,7 +30,7 @@ example:
 
 |type|`set`|
 |:---|:---|
-|key|`betahouse:heatae:user:roleInfo:userId`|  
+|key|`betahouse:haetae:user:roleInfo:userId`|  
 
 ##### value
 多个描述roleInfo的string  
@@ -46,7 +46,7 @@ example of one:
 
 |type|`set`|
 |:---|:---|
-|key|`betahouse:heatae:user:jobInfo:userId`|  
+|key|`betahouse:haetae:user:jobInfo:userId`|  
 
 ##### value
 多个描述jobInfo的string  
@@ -62,7 +62,7 @@ example of one:
 
 |type|`set`|
 |:---|:---|
-|key|`betahouse:heatae:user:avatarUrl:userId`|  
+|key|`betahouse:haetae:user:avatarUrl:userId`|  
 
 ##### value
 一个描述avatarUrl的string  
@@ -79,7 +79,7 @@ example of one:
 
 |type|`string`|
 |:---|:---|
-|key|`betahouse:heatae:activity:activity:{activityId}`|  
+|key|`betahouse:haetae:activity:activity:{activityId}`|  
 
 ##### value
 一个json string  
@@ -95,7 +95,7 @@ example:
 
 |type|`string`|
 |:---|:---|
-|key|`betahouse:heatae:activity:activityRecord:{userId}:{activityType}`|  
+|key|`betahouse:haetae:activity:activityRecord:{userId}:{activityType}`|  
 
 ##### value
 多个描述活动章的json string  

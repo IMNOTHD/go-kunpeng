@@ -21,3 +21,8 @@ ALTER USER 'canal'@'%' IDENTIFIED WITH mysql_native_password BY 'canal'; #更新
 
 GRANT ALL PRIVILEGES ON *.* TO 'canal'@'%' IDENTIFIED BY 'canal' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
+
+/*
+如出现ERROR: 1461 Can't create more than max_prepared_stmt_count statements (current value: 16382);
+可在[mysqld]中添加max_prepared_stmt_count=1048576
+*/
