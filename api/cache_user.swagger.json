@@ -1,0 +1,301 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cache_user.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cache/user/all": {
+      "delete": {
+        "summary": "删除全部缓存",
+        "operationId": "CacheUser_RemoveAllUserCache",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "CacheUser"
+        ]
+      },
+      "put": {
+        "summary": "缓存全部用户, 调用此rpc请注意Redis内存占用",
+        "operationId": "CacheUser_CacheAllUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "CacheUser"
+        ]
+      }
+    },
+    "/cache/user/class": {
+      "put": {
+        "summary": "以班级为关键字缓存用户",
+        "operationId": "CacheUser_CacheUserByClass",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheUserByClassRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheUser"
+        ]
+      }
+    },
+    "/cache/user/grade": {
+      "put": {
+        "summary": "以年级为关键字缓存用户",
+        "operationId": "CacheUser_CacheUserByGrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheUserByGradeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheUser"
+        ]
+      }
+    },
+    "/cache/user/single": {
+      "put": {
+        "summary": "缓存单个用户, 禁止多次调用此rpc, 需要cache用户时, 必须使用CacheMultiUser",
+        "operationId": "CacheUser_CacheSingleUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiCacheSingleUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheSingleUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheUser"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCacheMultiSingleUserResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheUserResponseCode"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg仅当错误时会出现"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheSingleUserRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheSingleUserResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheUserResponseCode"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheUserByClassRequest": {
+      "type": "object",
+      "properties": {
+        "class": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheUserByGradeRequest": {
+      "type": "object",
+      "properties": {
+        "grade": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheUserResponseCode": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "PARTIAL_SUCCESS",
+        "FAIL"
+      ],
+      "default": "SUCCESS",
+      "title": "- SUCCESS: 成功\n - PARTIAL_SUCCESS: 部分成功\n - FAIL: 失败"
+    },
+    "apiMultiCacheUserResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheUserResponseCode"
+        },
+        "successCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "请注意, 如code并非PARTITAL_SUCCESS, 不会返回successCount"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpc_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "http_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "http_status": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

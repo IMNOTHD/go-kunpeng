@@ -1,5 +1,6 @@
 // protoc --go_out=plugins=grpc:. cache_activity.proto
 // protoc --grpc-gateway_out=logtostderr=true:. cache_activity.proto
+// protoc --swagger_out=logtostderr=true:. cache_activity.proto
 syntax = "proto3";
 
 package api;

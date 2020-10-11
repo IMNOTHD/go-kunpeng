@@ -1,0 +1,301 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cache_activity.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cache/activity-record/all": {
+      "delete": {
+        "summary": "删除全部用户的activity record",
+        "operationId": "CacheActivityRecord_RemoveAllUserActivityRecordCache",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserActivityRecordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "CacheActivityRecord"
+        ]
+      },
+      "put": {
+        "summary": "缓存全部用户的activity record, 调用此rpc请注意Redis内存占用",
+        "operationId": "CacheActivityRecord_CacheAllUserActivityRecord",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserActivityRecordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "CacheActivityRecord"
+        ]
+      }
+    },
+    "/cache/activity-record/class": {
+      "put": {
+        "summary": "以班级为关键字缓存activity record",
+        "operationId": "CacheActivityRecord_CacheUserActivityRecordByClass",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserActivityRecordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheUserActivityRecordByClassRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheActivityRecord"
+        ]
+      }
+    },
+    "/cache/activity-record/grade": {
+      "put": {
+        "summary": "以年级为关键字缓存activity record",
+        "operationId": "CacheActivityRecord_CacheUserActivityRecordByGrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCacheUserActivityRecordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheUserActivityRecordByGradeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheActivityRecord"
+        ]
+      }
+    },
+    "/cache/activity-record/single": {
+      "put": {
+        "summary": "缓存同一用户的全部activity record, 禁止多次调用此rpc, 需要cache多个用户时, 必须使用CacheMultiSingleUserActivityRecord",
+        "operationId": "CacheActivityRecord_CacheSingleUserActivityRecord",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiCacheSingleUserActivityRecordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCacheSingleUserActivityRecordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CacheActivityRecord"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCacheActivityRecordResponseCode": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "PARTIAL_SUCCESS",
+        "FAIL"
+      ],
+      "default": "SUCCESS",
+      "title": "- SUCCESS: 成功\n - PARTIAL_SUCCESS: 部分成功\n - FAIL: 失败"
+    },
+    "apiCacheMultiSingleUserActivityRecordResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheActivityRecordResponseCode"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "title": "msg仅当错误时会出现"
+        }
+      }
+    },
+    "apiCacheSingleUserActivityRecordRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheSingleUserActivityRecordResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheActivityRecordResponseCode"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheUserActivityRecordByClassRequest": {
+      "type": "object",
+      "properties": {
+        "class": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCacheUserActivityRecordByGradeRequest": {
+      "type": "object",
+      "properties": {
+        "grade": {
+          "type": "string"
+        }
+      }
+    },
+    "apiMultiCacheUserActivityRecordResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/apiCacheActivityRecordResponseCode"
+        },
+        "successCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "请注意, 如code并非PARTITAL_SUCCESS, 不会返回successCount"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "runtimeStreamError": {
+      "type": "object",
+      "properties": {
+        "grpc_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "http_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "http_status": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
