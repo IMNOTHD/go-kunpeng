@@ -9,6 +9,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
 //option java_package = "";
+//option java_outer_classname = "CacheActivityService";
 option go_package = ".;api";
 
 service CacheActivityRecord {

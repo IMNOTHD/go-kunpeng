@@ -22,16 +22,16 @@ func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server {
 	var err error
 	err = pb.RegisterCacheUserHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
 	if err != nil {
-		log.Fatalf("Register Endpoint err: %v", err)
+		log.Printf("Register Endpoint err: %v", err)
 	}
 	err = pb.RegisterCacheActivityRecordHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
 	if err != nil {
-		log.Fatalf("Register Endpoint err: %v", err)
+		log.Printf("Register Endpoint err: %v", err)
 	}
 
-	//新建mux，它是http的请求复用器
+	// 新建mux，它是http的请求复用器
 	mux := http.NewServeMux()
-	//注册gwmux
+	// 注册gwmux
 	mux.Handle("/", gwmux)
 	log.Println(endpoint + " HTTP.Listing...")
 	return &http.Server{
@@ -44,6 +44,12 @@ func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server {
 // grpcHandlerFunc 根据不同的请求重定向到指定的Handler处理
 func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Handler {
 	return h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := r.Header.Get("X-Real-IP")
+		if ip == "" {
+			// 当请求头不存在即不存在代理时直接获取ip
+			ip = strings.Split(r.RemoteAddr, ":")[0]
+		}
+		log.Printf("Access from %s with %s to %s %s", ip, r.Header.Get("Content-Type"), r.Method, r.RequestURI)
 		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(w, r)
 		} else {
