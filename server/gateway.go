@@ -8,15 +8,15 @@ import (
 
 	pb "go-kunpeng/api"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 )
 
-func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server {
+func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server { //OrigName: true, EmitDefaults: true
 	ctx := context.Background()
-	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
+	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}))
 	dopts := []grpc.DialOption{grpc.WithInsecure()}
 
 	var err error
