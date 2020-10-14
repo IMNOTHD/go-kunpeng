@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	pb "go-kunpeng/api"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -16,7 +18,9 @@ import (
 
 func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server { //OrigName: true, EmitDefaults: true
 	ctx := context.Background()
-	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{}))
+	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true},
+	}))
 	dopts := []grpc.DialOption{grpc.WithInsecure()}
 
 	var err error
