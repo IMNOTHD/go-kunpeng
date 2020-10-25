@@ -22,7 +22,8 @@ canal(https://github.com/alibaba/canal)
 ## 2. 项目使用
 ### 2.1 项目启动
 运行docker-compose.yml即可  
-*请务必先阅读 **init.sql***
+*请务必先阅读 **init.sql***  
+*刚启动时go-kenpeng出现多次exit with code 1属于正常现象，因为canal启动需要时间，client连不上canal就会自动退出重启*
 
 ### 2.2 说明事项
 现在canal client使用的是轮询方式，具体的间隔在config相应的项中修改  

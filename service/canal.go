@@ -348,8 +348,9 @@ func Assign(ptr interface{}, m M) error {
 		}
 
 		if e, ok := m[dbField]; ok {
+			// 对结构体反射赋值
 			switch e.MysqlType {
-			//.....如果用到更多的数据类型, 请自行添加
+			// .....如果用到更多的数据类型, 请自行添加
 			case "datetime":
 				if e.IsNull {
 					v.Field(i).SetInt(0)
@@ -390,7 +391,7 @@ func Assign(ptr interface{}, m M) error {
 						log.Println("Unmarshal failed:", err)
 					}
 
-					// 黑科技, 别问, 我也不知道怎么写出来的
+					// 看不懂的重新学指针
 					*(*map[string]interface{})(unsafe.Pointer(v.Field(i).Addr().Pointer())) = tmp
 
 				} else {
