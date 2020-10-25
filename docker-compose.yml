@@ -28,3 +28,5 @@ services:
       dockerfile: Dockerfile
     restart: always
     network_mode: host
+    volumes:
+    - /home/go-kunpeng/go-kunpeng/logs:/var/log/go-kunpeng
