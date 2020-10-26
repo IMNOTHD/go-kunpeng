@@ -283,12 +283,37 @@ func CleanActivityRedis(c *redis.Client, activityId string) error {
 	return nil
 }
 
-func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRecord) error {
+func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRecord, isAdd bool) error {
 	var ctx = context.Background()
 
-	// TODO 增量更新时检查数量, 若为0重新跑这个人的全量
+	// 增量更新时检查活动章数量, 若为0重新跑这个人的全量
+	// key为userId
+	ignoreMap := make(map[string]bool)
+
+	if isAdd {
+		db, err := CreateMysqlWorker()
+		if err != nil {
+			zap.L().Error(err.Error())
+		}
+		for _, v := range *activityRecord {
+			if x, ok := ignoreMap[v.UserID]; ok && (!x) {
+				cmd := c.Keys(ctx, fmt.Sprintf("%s%s*", _activityRecordRedisKey, v.UserID))
+				l := len(cmd.Val())
+				if l == 0 {
+					err = CacheSingleUserAllActivityRecord(db, c, v.UserID)
+					if err != nil {
+						continue
+					}
+				}
+			}
+		}
+	}
 
 	for _, v := range *activityRecord {
+		if x, ok := ignoreMap[v.UserID]; ok && x {
+			continue
+		}
+
 		record, _ := json.Marshal(v)
 		key := fmt.Sprintf("%s%s:%s", _activityRecordRedisKey, v.UserID, v.Type)
 

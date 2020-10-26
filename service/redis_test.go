@@ -44,7 +44,7 @@ func TestCreateRedisClient(t *testing.T) {
 	x := make([]model.ActivityRecord, 0)
 	x = append(x, *a)
 
-	err = AddActivityRecordRedis(c, &x)
+	err = AddActivityRecordRedis(c, &x, false)
 
 	if err != nil {
 		log.Fatal(err)

@@ -227,7 +227,7 @@ func handleData(es []protocol.Entry) {
 					x.ActivityTime = fmt.Sprintf("%.1f", float64(x.Time/10))
 					x.ScannerName = su.RealName
 
-					err = AddActivityRecordRedis(rc, &[]model.ActivityRecord{x})
+					err = AddActivityRecordRedis(rc, &[]model.ActivityRecord{x}, true)
 					if err != nil {
 						continue
 					}

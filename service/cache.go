@@ -202,7 +202,7 @@ func CacheSingleUserAllActivityRecord(db *sql.DB, rc *redis.Client, userId strin
 		return nil
 	}
 
-	err = AddActivityRecordRedis(rc, ar)
+	err = AddActivityRecordRedis(rc, ar, false)
 	if err != nil {
 		return err
 	}
