@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
 	"strings"
 
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	pb "go-kunpeng/api"
@@ -26,18 +27,18 @@ func ProvideHttp(endpoint string, grpcServer *grpc.Server) *http.Server { //Orig
 	var err error
 	err = pb.RegisterCacheUserHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
 	if err != nil {
-		log.Printf("Register Endpoint err: %v", err)
+		zap.L().Error(fmt.Sprintf("Register CacheUser Endpoint err: %v", err))
 	}
 	err = pb.RegisterCacheActivityRecordHandlerFromEndpoint(ctx, gwmux, endpoint, dopts)
 	if err != nil {
-		log.Printf("Register Endpoint err: %v", err)
+		zap.L().Error(fmt.Sprintf("Register CacheActivityRecord Endpoint err: %v", err))
 	}
 
 	// 新建mux，它是http的请求复用器
 	mux := http.NewServeMux()
 	// 注册gwmux
 	mux.Handle("/", gwmux)
-	log.Println(endpoint + " HTTP.Listing...")
+	zap.L().Info(endpoint + " HTTP.Listing...")
 	return &http.Server{
 		Addr:      endpoint,
 		Handler:   grpcHandlerFunc(grpcServer, mux),
@@ -53,7 +54,9 @@ func grpcHandlerFunc(grpcServer *grpc.Server, otherHandler http.Handler) http.Ha
 			// 当请求头不存在即不存在代理时直接获取ip
 			ip = strings.Split(r.RemoteAddr, ":")[0]
 		}
-		log.Printf("Access from %s with %s to %s %s", ip, r.Header.Get("Content-Type"), r.Method, r.RequestURI)
+
+		zap.L().Info(fmt.Sprintf("Access from %s with %s to %s %s", ip, r.Header.Get("Content-Type"), r.Method, r.RequestURI))
+
 		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(w, r)
 		} else {

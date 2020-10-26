@@ -93,7 +93,7 @@ example:
 ### activity record
 ##### key
 
-|type|`string`|
+|type|`zset`|
 |:---|:---|
 |key|`betahouse:haetae:activity:activityRecord:{userId}:{activityType}`|  
 

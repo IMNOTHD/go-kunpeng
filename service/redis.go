@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 
 	rc "go-kunpeng/config/redis"
 	"go-kunpeng/model"
@@ -32,6 +33,11 @@ func CreateRedisClient() (*redis.Client, error) {
 	var ctx = context.Background()
 	_, err := c.Ping(ctx).Result()
 
+	if err != nil {
+		zap.L().Error(err.Error())
+		return nil, err
+	}
+
 	return c, err
 }
 
@@ -51,6 +57,7 @@ func CleanUserAllInfo(c *redis.Client, userId string) error {
 
 	if err != nil {
 		_ = pipe.Discard()
+		zap.L().Error(err.Error())
 		return err
 	}
 
@@ -62,6 +69,7 @@ func CleanAllUserAllInfo(c *redis.Client) (int32, error) {
 
 	k, err := c.Keys(ctx, _userRedisKey+"*").Result()
 	if err != nil {
+		zap.L().Error(err.Error())
 		return 0, err
 	}
 
@@ -79,6 +87,7 @@ func CleanAllUserAllInfo(c *redis.Client) (int32, error) {
 	if isFullSuccess {
 		return successCount, nil
 	} else {
+		zap.L().Error("some remove failed")
 		return successCount, errors.New("some remove failed")
 	}
 }
@@ -90,6 +99,7 @@ func CleanUserAllActivityRecord(c *redis.Client, userId string) error {
 
 	k, err := c.Keys(ctx, multiKey).Result()
 	if err != nil {
+		zap.L().Error(err.Error())
 		return err
 	}
 
@@ -105,6 +115,7 @@ func CleanUserAllActivityRecord(c *redis.Client, userId string) error {
 
 	if err != nil {
 		_ = pipe.Discard()
+		zap.L().Error(err.Error())
 		return err
 	}
 
@@ -116,6 +127,7 @@ func CleanAllUserAllActivityRecord(c *redis.Client) (int32, error) {
 
 	k, err := c.Keys(ctx, _activityRecordRedisKey+"*").Result()
 	if err != nil {
+		zap.L().Error(err.Error())
 		return 0, err
 	}
 
@@ -133,6 +145,7 @@ func CleanAllUserAllActivityRecord(c *redis.Client) (int32, error) {
 	if isFullSuccess {
 		return successCount, nil
 	} else {
+		zap.L().Error("some remove failed")
 		return successCount, errors.New("some remove failed")
 	}
 }
@@ -144,6 +157,7 @@ func SetUserInfoRedis(c *redis.Client, userInfo *model.UserInfo) error {
 	val := c.HSet(ctx, _userInfoRedisKey, userInfo.UserID, info)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -156,6 +170,7 @@ func CleanUserInfoRedis(c *redis.Client, userId string) error {
 	val := c.HDel(ctx, _userInfoRedisKey, userId)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -169,6 +184,7 @@ func AddRoleInfoRedis(c *redis.Client, userId string, roleInfo *model.RoleInfo) 
 		val := c.SAdd(ctx, _roleInfoRedisKey+userId, role)
 
 		if val.Err() != nil {
+			zap.L().Error(val.Err().Error())
 			return val.Err()
 		}
 	}
@@ -182,6 +198,7 @@ func CleanRoleInfoRedis(c *redis.Client, userId string) error {
 	val := c.Del(ctx, _roleInfoRedisKey+userId)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -195,6 +212,7 @@ func AddJobInfoRedis(c *redis.Client, userId string, jobInfo *model.JobInfo) err
 		val := c.SAdd(ctx, _jobInfoRedisKey+userId, job)
 
 		if val.Err() != nil {
+			zap.L().Error(val.Err().Error())
 			return val.Err()
 		}
 	}
@@ -208,6 +226,7 @@ func CleanJobInfoRedis(c *redis.Client, userId string) error {
 	val := c.Del(ctx, _jobInfoRedisKey+userId)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -220,6 +239,7 @@ func SetAvatarUrlRedis(c *redis.Client, userId string, avatarUrl *model.AvatarUr
 	val := c.Set(ctx, _avatarUrlRedisKey+userId, avatarUrl.Url, 0)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -230,13 +250,15 @@ func SetActivityRedis(c *redis.Client, activityId string, activity *model.Activi
 	var ctx = context.Background()
 
 	if activityId == "" {
-		return errors.New("activityId null")
+		zap.L().Error("activityId null: " + activityId)
+		return errors.New("activityId null: " + activityId)
 	}
 
 	record, _ := json.Marshal(activity)
 	val := c.Set(ctx, _activityRedisKey+activityId, record, 0)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -247,12 +269,14 @@ func CleanActivityRedis(c *redis.Client, activityId string) error {
 	var ctx = context.Background()
 
 	if activityId == "" {
-		return errors.New("activityId null")
+		zap.L().Warn("activityId null: " + activityId)
+		return errors.New("activityId null: " + activityId)
 	}
 
 	val := c.Del(ctx, _activityRedisKey+activityId)
 
 	if val.Err() != nil {
+		zap.L().Error(val.Err().Error())
 		return val.Err()
 	}
 
@@ -262,18 +286,22 @@ func CleanActivityRedis(c *redis.Client, activityId string) error {
 func AddActivityRecordRedis(c *redis.Client, activityRecord *[]model.ActivityRecord) error {
 	var ctx = context.Background()
 
+	// TODO 增量更新时检查数量, 若为0重新跑这个人的全量
+
 	for _, v := range *activityRecord {
 		record, _ := json.Marshal(v)
 		key := fmt.Sprintf("%s%s:%s", _activityRecordRedisKey, v.UserID, v.Type)
 
 		count, err := c.ZCard(ctx, key).Result()
 		if err != nil {
+			zap.L().Error(err.Error())
 			return err
 		}
 
 		val := c.ZAdd(ctx, key, &redis.Z{Score: float64(count), Member: record})
 
 		if val.Err() != nil {
+			zap.L().Error(val.Err().Error())
 			return val.Err()
 		}
 	}

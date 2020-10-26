@@ -3,9 +3,9 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"log"
 
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 )
 
 func CacheSingleUserAllInfo(db *sql.DB, rc *redis.Client, userId string) error {
@@ -21,7 +21,8 @@ func CacheSingleUserAllInfo(db *sql.DB, rc *redis.Client, userId string) error {
 		return err
 	}
 	if &u == nil {
-		return errors.New("no such user")
+		zap.L().Warn("no such user: " + userId)
+		return errors.New("no such user: " + userId)
 	}
 
 	err = SetUserInfoRedis(rc, &u.UserInfo)
@@ -52,7 +53,8 @@ func CacheUserByGrade(db *sql.DB, rc *redis.Client, grade string) (int32, error)
 		return 0, err
 	}
 	if *ul == nil {
-		return 0, errors.New("no such grade")
+		zap.L().Warn("no such grade: " + grade)
+		return 0, errors.New("no such grade: " + grade)
 	}
 
 	var successCount int32 = 0
@@ -60,34 +62,30 @@ func CacheUserByGrade(db *sql.DB, rc *redis.Client, grade string) (int32, error)
 	for _, u := range *ul {
 		err = CleanUserAllInfo(rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
 		err = SetUserInfoRedis(rc, &u.UserInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddRoleInfoRedis(rc, u.UserInfo.UserID, &u.RoleInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddJobInfoRedis(rc, u.UserInfo.UserID, &u.JobInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = SetAvatarUrlRedis(rc, u.UserInfo.UserID, &u.AvatarUrl)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		successCount++
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil
@@ -102,7 +100,8 @@ func CacheUserByClass(db *sql.DB, rc *redis.Client, class string) (int32, error)
 		return 0, err
 	}
 	if *ul == nil {
-		return 0, errors.New("no such class")
+		zap.L().Error("no such class: " + class)
+		return 0, errors.New("no such class: " + class)
 	}
 
 	var successCount int32 = 0
@@ -110,34 +109,30 @@ func CacheUserByClass(db *sql.DB, rc *redis.Client, class string) (int32, error)
 	for _, u := range *ul {
 		err = CleanUserAllInfo(rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
 		err = SetUserInfoRedis(rc, &u.UserInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddRoleInfoRedis(rc, u.UserInfo.UserID, &u.RoleInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddJobInfoRedis(rc, u.UserInfo.UserID, &u.JobInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = SetAvatarUrlRedis(rc, u.UserInfo.UserID, &u.AvatarUrl)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		successCount++
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil
@@ -152,6 +147,7 @@ func CacheAllUser(db *sql.DB, rc *redis.Client) (int32, error) {
 		return 0, err
 	}
 	if *ul == nil {
+		zap.L().Error("db query all user error")
 		return 0, errors.New("db query all user error")
 	}
 
@@ -160,34 +156,30 @@ func CacheAllUser(db *sql.DB, rc *redis.Client) (int32, error) {
 	for _, u := range *ul {
 		err = CleanUserAllInfo(rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
 		err = SetUserInfoRedis(rc, &u.UserInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddRoleInfoRedis(rc, u.UserInfo.UserID, &u.RoleInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = AddJobInfoRedis(rc, u.UserInfo.UserID, &u.JobInfo)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		err = SetAvatarUrlRedis(rc, u.UserInfo.UserID, &u.AvatarUrl)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 		successCount++
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil
@@ -226,7 +218,8 @@ func CacheActivityRecordByGrade(db *sql.DB, rc *redis.Client, grade string) (int
 		return 0, err
 	}
 	if *ul == nil {
-		return 0, errors.New("no such grade")
+		zap.L().Error("no such grade: " + grade)
+		return 0, errors.New("no such grade: " + grade)
 	}
 
 	var successCount int32 = 0
@@ -234,7 +227,6 @@ func CacheActivityRecordByGrade(db *sql.DB, rc *redis.Client, grade string) (int
 	for _, u := range *ul {
 		err = CacheSingleUserAllActivityRecord(db, rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
@@ -242,6 +234,7 @@ func CacheActivityRecordByGrade(db *sql.DB, rc *redis.Client, grade string) (int
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil
@@ -256,7 +249,8 @@ func CacheActivityRecordByClass(db *sql.DB, rc *redis.Client, class string) (int
 		return 0, err
 	}
 	if *ul == nil {
-		return 0, errors.New("no such class")
+		zap.L().Error("no such class: " + class)
+		return 0, errors.New("no such class: " + class)
 	}
 
 	var successCount int32 = 0
@@ -264,7 +258,6 @@ func CacheActivityRecordByClass(db *sql.DB, rc *redis.Client, class string) (int
 	for _, u := range *ul {
 		err = CacheSingleUserAllActivityRecord(db, rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
@@ -272,6 +265,7 @@ func CacheActivityRecordByClass(db *sql.DB, rc *redis.Client, class string) (int
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil
@@ -286,6 +280,7 @@ func CacheAllUserActivityRecord(db *sql.DB, rc *redis.Client) (int32, error) {
 		return 0, err
 	}
 	if *ul == nil {
+		zap.L().Error("db query all user error")
 		return 0, errors.New("db query all user error")
 	}
 
@@ -294,7 +289,6 @@ func CacheAllUserActivityRecord(db *sql.DB, rc *redis.Client) (int32, error) {
 	for _, u := range *ul {
 		err = CacheSingleUserAllActivityRecord(db, rc, u.UserInfo.UserID)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
@@ -302,6 +296,7 @@ func CacheAllUserActivityRecord(db *sql.DB, rc *redis.Client) (int32, error) {
 	}
 
 	if int(successCount) != len(*ul) {
+		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
 		return successCount, nil

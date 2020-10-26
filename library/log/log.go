@@ -2,6 +2,7 @@ package log
 
 import (
 	"io"
+	"os"
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -52,6 +53,10 @@ func init() {
 		return lvl > zapcore.WarnLevel
 	})
 
+	allLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return true
+	})
+
 	infoWriter := getWriter(_infoLogPath)
 	warnWriter := getWriter(_warnLogPath)
 	errorWriter := getWriter(_errorLogPath)
@@ -61,6 +66,7 @@ func init() {
 		zapcore.NewCore(encoder, zapcore.AddSync(infoWriter), infoLevel),
 		zapcore.NewCore(encoder, zapcore.AddSync(warnWriter), warnLevel),
 		zapcore.NewCore(encoder, zapcore.AddSync(errorWriter), errorLevel),
+		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), allLevel),
 	)
 
 	Logger = zap.New(core, zap.AddStacktrace(zapcore.WarnLevel), zap.AddCaller())

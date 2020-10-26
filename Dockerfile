@@ -9,6 +9,7 @@ COPY model model
 COPY config config
 COPY api api
 COPY server server
+COPY library library
 COPY go.mod go.mod
 COPY go.sum go.sum
 COPY main.go main.go

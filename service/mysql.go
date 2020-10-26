@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"go.uber.org/zap"
+
 	mc "go-kunpeng/config/mysql"
 	"go-kunpeng/model"
 
@@ -33,12 +35,14 @@ func CreateMysqlWorker() (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	err = db.Ping()
 
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -50,21 +54,25 @@ func QueryUserByUserId(db *sql.DB, userId string) (*model.User, error) {
 
 	u, err := QueryUserInfoByUserId(db, userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	r, err := QueryRoleInfoByUserId(db, userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	j, err := QueryJobInfoByUserId(db, userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	a, err := QueryAvatarUrlByUserId(db, userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -81,15 +89,18 @@ func QueryUserByGrade(db *sql.DB, grade string) (*[]model.User, error) {
 
 	stmt, err := db.Prepare(_queryUserInfoByGrade)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.Query(grade)
 
 	if rows == nil {
-		return nil, errors.New("no such user")
+		zap.L().Warn("no such grade: " + grade)
+		return nil, errors.New("no such grade: " + grade)
 	}
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -100,6 +111,7 @@ func QueryUserByGrade(db *sql.DB, grade string) (*[]model.User, error) {
 
 		err = rows.Scan(&ud.UserInfoID, &ud.UserID, &ud.StuID, &ud.RealName, &ud.Sex, &ud.Major, &ud.ClassID, &ud.Grade, &ud.EnrollDate, &ud.ExtInfo)
 		if err != nil {
+			zap.L().Error(err.Error())
 			return nil, err
 		}
 
@@ -148,15 +160,18 @@ func QueryUserByClass(db *sql.DB, class string) (*[]model.User, error) {
 
 	stmt, err := db.Prepare(_queryUserInfoByClass)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.Query(class)
 
 	if rows == nil {
-		return nil, errors.New("no such user")
+		zap.L().Warn("no such class: " + class)
+		return nil, errors.New("no such class: " + class)
 	}
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -167,6 +182,7 @@ func QueryUserByClass(db *sql.DB, class string) (*[]model.User, error) {
 
 		err = rows.Scan(&ud.UserInfoID, &ud.UserID, &ud.StuID, &ud.RealName, &ud.Sex, &ud.Major, &ud.ClassID, &ud.Grade, &ud.EnrollDate, &ud.ExtInfo)
 		if err != nil {
+			zap.L().Error(err.Error())
 			return nil, err
 		}
 
@@ -215,15 +231,18 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 
 	stmt, err := db.Prepare(_queryUserInfoAll)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.Query()
 
 	if rows == nil {
-		return nil, errors.New("no such user")
+		zap.L().Warn("didn't get any user")
+		return nil, errors.New("didn't get any user")
 	}
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -234,6 +253,7 @@ func QueryUserAll(db *sql.DB) (*[]model.User, error) {
 
 		err = rows.Scan(&ud.UserInfoID, &ud.UserID, &ud.StuID, &ud.RealName, &ud.Sex, &ud.Major, &ud.ClassID, &ud.Grade, &ud.EnrollDate, &ud.ExtInfo)
 		if err != nil {
+			zap.L().Error(err.Error())
 			return nil, err
 		}
 
@@ -283,12 +303,14 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 	var ctx = context.Background()
 	rc, err := CreateRedisClient()
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 	defer rc.Close()
 
 	stmt, err := db.Prepare(_queryActivityRecordByUserId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -299,6 +321,7 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 		return &a, nil
 	}
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -307,11 +330,13 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 
 		err = rows.Scan(&ard.ActivityRecordId, &ard.ActivityId, &ard.UserId, &ard.ScannerUserId, &ard.Time, &ard.Type, &ard.Status, &ard.Term, &ard.Grades, &ard.ExtInfo, &ard.GmtCreate)
 		if err != nil {
+			zap.L().Error(err.Error())
 			return nil, err
 		}
 
 		x, err := rc.Exists(ctx, _activityRedisKey+ard.ActivityId).Result()
 		if err != nil {
+			zap.L().Error(err.Error())
 			return nil, err
 		}
 		if x <= 0 {
@@ -363,18 +388,21 @@ func QueryActivityRecordByUserId(db *sql.DB, userId string) (*[]model.ActivityRe
 func QueryActivityByActivityId(db *sql.DB, activityId string) (*model.ActivityDO, error) {
 	aStmt, err := db.Prepare(_queryActivityByActivityId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	row := aStmt.QueryRow(activityId)
 
 	if row == nil {
-		return nil, errors.New("no such activity")
+		zap.L().Warn("no such activity: " + activityId)
+		return nil, errors.New("no such activity: " + activityId)
 	}
 
 	var a model.ActivityDO
 	err = row.Scan(&a.ActivityName, &a.OrganizationMessage, &a.Location, &a.Start, &a.End, &a.Score)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -384,19 +412,22 @@ func QueryActivityByActivityId(db *sql.DB, activityId string) (*model.ActivityDO
 func QueryUserInfoByUserId(db *sql.DB, userId string) (*model.UserInfo, error) {
 	uStmt, err := db.Prepare(_queryUserInfoByUserId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	row := uStmt.QueryRow(userId)
 
 	if row == nil {
-		return nil, errors.New("no such user")
+		zap.L().Warn("no such user: " + userId)
+		return nil, errors.New("no such user: " + userId)
 	}
 
 	var u model.UserInfoDO
 
 	err = row.Scan(&u.UserInfoID, &u.UserID, &u.StuID, &u.RealName, &u.Sex, &u.Major, &u.ClassID, &u.Grade, &u.EnrollDate, &u.ExtInfo)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -420,12 +451,14 @@ func QueryRoleCodeByRoleId(db *sql.DB, roleId string) (string, error) {
 	var roleCode string
 	cStmt, err := db.Prepare(_queryRoleCodeByRoleId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return "", err
 	}
 
 	row := cStmt.QueryRow(roleId)
 	err = row.Scan(&roleCode)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return "", err
 	}
 
@@ -435,11 +468,13 @@ func QueryRoleCodeByRoleId(db *sql.DB, roleId string) (string, error) {
 func QueryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
 	rStmt, err := db.Prepare(_queryRoleIdByUserID)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	rows, err := rStmt.Query(userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -451,12 +486,14 @@ func QueryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
 		for rows.Next() {
 			err = rows.Scan(&roleId)
 			if err != nil {
+				zap.L().Error(err.Error())
 				return nil, err
 			}
 
 			row := cStmt.QueryRow(roleId)
 			err = row.Scan(&roleCode)
 			if err != nil {
+				zap.L().Error(err.Error())
 				return nil, err
 			}
 
@@ -470,11 +507,13 @@ func QueryRoleInfoByUserId(db *sql.DB, userId string) (*model.RoleInfo, error) {
 func QueryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
 	jStmt, err := db.Prepare(_queryJobInfoByUserId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
 	rows, err := jStmt.Query(userId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -485,6 +524,7 @@ func QueryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
 		for rows.Next() {
 			err = rows.Scan(&jobInfoDO.OrganizationName, &jobInfoDO.MemberDescription)
 			if err != nil {
+				zap.L().Error(err.Error())
 				return nil, err
 			}
 
@@ -498,6 +538,7 @@ func QueryJobInfoByUserId(db *sql.DB, userId string) (*model.JobInfo, error) {
 func QueryAvatarUrlByUserId(db *sql.DB, userId string) (*model.AvatarUrl, error) {
 	aStmt, err := db.Prepare(_queryAvatarUrlByUserId)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 
@@ -510,6 +551,7 @@ func QueryAvatarUrlByUserId(db *sql.DB, userId string) (*model.AvatarUrl, error)
 	var a model.AvatarUrlDO
 	err = row.Scan(&a.Url)
 	if err != nil {
+		zap.L().Error(err.Error())
 		return nil, err
 	}
 

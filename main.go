@@ -11,7 +11,6 @@ import (
 func main() {
 	// 注册logger
 	defer log.Logger.Sync()
-
 	zap.ReplaceGlobals(log.Logger)
 
 	// 启动canal服务
