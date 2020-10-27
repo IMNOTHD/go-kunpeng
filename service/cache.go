@@ -42,6 +42,8 @@ func CacheSingleUserAllInfo(db *sql.DB, rc *redis.Client, userId string) error {
 		return err
 	}
 
+	zap.L().Info("cache user " + userId + " succeed")
+
 	return nil
 }
 
@@ -85,9 +87,11 @@ func CacheUserByGrade(db *sql.DB, rc *redis.Client, grade string) (int32, error)
 	}
 
 	if int(successCount) != len(*ul) {
-		zap.L().Error("some cache failed")
+		zap.L().Warn("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache grade " + grade + " succeed")
+
 		return successCount, nil
 	}
 }
@@ -132,9 +136,11 @@ func CacheUserByClass(db *sql.DB, rc *redis.Client, class string) (int32, error)
 	}
 
 	if int(successCount) != len(*ul) {
-		zap.L().Error("some cache failed")
+		zap.L().Warn("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache class " + class + " succeed")
+
 		return successCount, nil
 	}
 }
@@ -179,9 +185,11 @@ func CacheAllUser(db *sql.DB, rc *redis.Client) (int32, error) {
 	}
 
 	if int(successCount) != len(*ul) {
-		zap.L().Error("some cache failed")
+		zap.L().Warn("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache all user succeed")
+
 		return successCount, nil
 	}
 }
@@ -206,6 +214,8 @@ func CacheSingleUserAllActivityRecord(db *sql.DB, rc *redis.Client, userId strin
 	if err != nil {
 		return err
 	}
+
+	zap.L().Info("cache user " + userId + " activity record succeed")
 
 	return nil
 }
@@ -234,9 +244,11 @@ func CacheActivityRecordByGrade(db *sql.DB, rc *redis.Client, grade string) (int
 	}
 
 	if int(successCount) != len(*ul) {
-		zap.L().Error("some cache failed")
+		zap.L().Warn("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache grade " + grade + " activity record succeed")
+
 		return successCount, nil
 	}
 }
@@ -268,6 +280,8 @@ func CacheActivityRecordByClass(db *sql.DB, rc *redis.Client, class string) (int
 		zap.L().Error("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache class " + class + " activity record succeed")
+
 		return successCount, nil
 	}
 }
@@ -296,9 +310,11 @@ func CacheAllUserActivityRecord(db *sql.DB, rc *redis.Client) (int32, error) {
 	}
 
 	if int(successCount) != len(*ul) {
-		zap.L().Error("some cache failed")
+		zap.L().Warn("some cache failed")
 		return successCount, errors.New("some cache failed")
 	} else {
+		zap.L().Info("cache all user activity record succeed")
+
 		return successCount, nil
 	}
 }
