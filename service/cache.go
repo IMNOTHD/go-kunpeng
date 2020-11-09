@@ -318,3 +318,11 @@ func CacheAllUserActivityRecord(db *sql.DB, rc *redis.Client) (int32, error) {
 		return successCount, nil
 	}
 }
+
+func CacheAllActivity(db *sql.DB, rc *redis.Client) (int32, error) {
+	var successCount int32 = 0
+
+	// TODO
+
+	return successCount, nil
+}
