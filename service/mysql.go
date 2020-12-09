@@ -28,6 +28,11 @@ const (
 	_queryActivityByActivityId   = "select activity_name, organization_message, location, `start`, `end`, score from activity where activity_id = ?"
 )
 
+func init() {
+	// todo 更改sql语句预编译
+	return
+}
+
 func CreateMysqlWorker() (*sql.DB, error) {
 	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
 	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s?%s", mc.Username, mc.Password, mc.Protocol, mc.Address, mc.Port, mc.Dbname, mc.Addition)
